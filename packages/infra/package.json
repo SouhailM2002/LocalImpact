@@ -1,0 +1,14 @@
+{
+  "name": "@localimpact/infra",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "LocalImpact infrastructure implementations of application interfaces.",
+  "scripts": {
+    "lint": "eslint . --no-error-on-unmatched-pattern"
+  },
+  "dependencies": {
+    "@localimpact/application": "workspace:*",
+    "@localimpact/domain": "workspace:*"
+  }
+}

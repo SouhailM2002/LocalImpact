@@ -1,0 +1,17 @@
+{
+  "name": "@localimpact/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Next.js App Router application and composition root for LocalImpact.",
+  "scripts": {
+    "lint": "eslint . --no-error-on-unmatched-pattern"
+  },
+  "dependencies": {
+    "@localimpact/application": "workspace:*",
+    "@localimpact/config": "workspace:*",
+    "@localimpact/db": "workspace:*",
+    "@localimpact/infra": "workspace:*",
+    "@localimpact/ui": "workspace:*"
+  }
+}

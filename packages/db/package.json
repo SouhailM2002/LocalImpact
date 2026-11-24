@@ -1,0 +1,14 @@
+{
+  "name": "@localimpact/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Prisma-specific LocalImpact database infrastructure.",
+  "scripts": {
+    "lint": "eslint . --no-error-on-unmatched-pattern"
+  },
+  "dependencies": {
+    "@localimpact/application": "workspace:*",
+    "@localimpact/domain": "workspace:*"
+  }
+}

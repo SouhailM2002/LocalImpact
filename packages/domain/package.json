@@ -1,0 +1,10 @@
+{
+  "name": "@localimpact/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-independent LocalImpact domain model.",
+  "scripts": {
+    "lint": "eslint . --no-error-on-unmatched-pattern"
+  }
+}

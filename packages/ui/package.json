@@ -1,0 +1,10 @@
+{
+  "name": "@localimpact/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Reusable LocalImpact React components.",
+  "scripts": {
+    "lint": "eslint . --no-error-on-unmatched-pattern"
+  }
+}

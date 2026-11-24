@@ -1,0 +1,10 @@
+{
+  "name": "@localimpact/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared LocalImpact tooling and configuration.",
+  "scripts": {
+    "lint": "eslint . --no-error-on-unmatched-pattern"
+  }
+}
