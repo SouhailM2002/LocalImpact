@@ -21,6 +21,12 @@ export interface CreateSignalementInput {
   readonly assignedResponsableId?: string;
 }
 
+export interface ReconstituteSignalementInput extends CreateSignalementInput {
+  readonly status: Statut;
+  readonly supportCount: number;
+  readonly interventionDescription?: string;
+}
+
 export interface ChangeSignalementStatusInput {
   readonly historyId: string;
   readonly newStatus: Statut;
@@ -33,9 +39,11 @@ export interface ChangeSignalementStatusInput {
 export type SignalementActorRole = "USER" | "RESPONSABLE" | "ADMIN";
 
 export class Signalement {
-  private currentStatus = Statut.NOUVEAU;
+  private currentStatus: Statut;
   private assignedResponsable: string | undefined;
   private readonly supportingUserIds = new Set<string>();
+  private readonly persistedSupportCount: number;
+  private currentInterventionDescription: string | undefined;
 
   private constructor(
     readonly id: SignalementId,
@@ -47,8 +55,14 @@ export class Signalement {
     private readonly creationDate: Date,
     readonly creatorId: string,
     assignedResponsableId: string | undefined,
+    status: Statut = Statut.NOUVEAU,
+    supportCount = 0,
+    interventionDescription: string | undefined = undefined,
   ) {
     this.assignedResponsable = assignedResponsableId;
+    this.currentStatus = status;
+    this.persistedSupportCount = supportCount;
+    this.currentInterventionDescription = interventionDescription;
   }
 
   static create(input: CreateSignalementInput): Signalement {
@@ -69,6 +83,33 @@ export class Signalement {
     );
   }
 
+  static reconstitute(input: ReconstituteSignalementInput): Signalement {
+    if (!(input.id instanceof SignalementId)) {
+      throw new InvalidSignalementError("id", "A valid report ID is required.");
+    }
+    if (!(input.status instanceof Statut)) {
+      throw new InvalidSignalementError("status", "A valid report status is required.");
+    }
+    if (!Number.isSafeInteger(input.supportCount) || input.supportCount < 0) {
+      throw new InvalidSignalementError("supportCount", "Support count must be a non-negative integer.");
+    }
+
+    return new Signalement(
+      input.id,
+      requireNonBlank(input.title, "title", "signalement"),
+      requireNonBlank(input.description, "description", "signalement"),
+      requireNonBlank(input.category, "category", "signalement"),
+      requireNonBlank(input.location, "location", "signalement"),
+      optionalNonBlank(input.photoUrl, "photoUrl", "signalement"),
+      copyValidDate(input.createdAt ?? new Date(), "createdAt", "signalement"),
+      requireNonBlank(input.creatorId, "creatorId", "signalement"),
+      optionalNonBlank(input.assignedResponsableId, "assignedResponsableId", "signalement"),
+      input.status,
+      input.supportCount,
+      optionalNonBlank(input.interventionDescription, "interventionDescription", "signalement"),
+    );
+  }
+
   get createdAt(): Date {
     return new Date(this.creationDate.getTime());
   }
@@ -82,7 +123,11 @@ export class Signalement {
   }
 
   get supportCount(): number {
-    return this.supportingUserIds.size;
+    return this.persistedSupportCount + this.supportingUserIds.size;
+  }
+
+  get interventionDescription(): string | undefined {
+    return this.currentInterventionDescription;
   }
 
   assignToResponsable(responsableId: string): void {
@@ -123,6 +168,7 @@ export class Signalement {
     };
     const history = HistoriqueStatut.create(historyInput);
     this.currentStatus = input.newStatus;
+    this.currentInterventionDescription = history.interventionDescription;
 
     return history;
   }

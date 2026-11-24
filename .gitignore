@@ -9,6 +9,7 @@ out/
 .turbo/
 coverage/
 *.tsbuildinfo
+apps/web/public/uploads/
 
 # Environment files
 .env

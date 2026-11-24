@@ -5,13 +5,29 @@
   "type": "module",
   "description": "Next.js App Router application and composition root for LocalImpact.",
   "scripts": {
-    "lint": "eslint . --no-error-on-unmatched-pattern"
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint . --no-error-on-unmatched-pattern",
+    "typecheck": "next typegen && tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
     "@localimpact/application": "workspace:*",
-    "@localimpact/config": "workspace:*",
     "@localimpact/db": "workspace:*",
+    "@localimpact/domain": "workspace:*",
     "@localimpact/infra": "workspace:*",
-    "@localimpact/ui": "workspace:*"
+    "@localimpact/ui": "workspace:*",
+    "@next/env": "^16.4.6",
+    "next": "^16.4.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "postcss": "^8.5.33",
+    "tailwindcss": "^4.1.18"
   }
 }

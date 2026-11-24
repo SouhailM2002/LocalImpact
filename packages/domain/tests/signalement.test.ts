@@ -38,6 +38,24 @@ describe("Signalement", () => {
     expect(report.assignedResponsableId).toBeUndefined();
   });
 
+  it("reconstitutes persisted status, support count, and intervention description", () => {
+    const report = Signalement.reconstitute({
+      ...validInput,
+      status: Statut.EN_COURS,
+      supportCount: 4,
+      interventionDescription: "Initial repair attempted.",
+    });
+
+    expect(report.status).toBe(Statut.EN_COURS);
+    expect(report.supportCount).toBe(4);
+    expect(report.interventionDescription).toBe("Initial repair attempted.");
+    expect(() => Signalement.reconstitute({
+      ...validInput,
+      status: Statut.NOUVEAU,
+      supportCount: -1,
+    })).toThrow(InvalidSignalementError);
+  });
+
   it.each(["title", "description", "category", "location"] as const)(
     "rejects a blank %s",
     (field) => {
@@ -181,6 +199,7 @@ describe("Signalement", () => {
 
     expect(report.status).toBe(Statut.RESOLU);
     expect(history.interventionDescription).toBe("Replaced the faulty light.");
+    expect(report.interventionDescription).toBe("Replaced the faulty light.");
   });
 
   it("returns defensive copies of creation dates", () => {

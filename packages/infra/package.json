@@ -23,6 +23,7 @@
     "@localimpact/domain": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "vitest": "^4.1.12"
   }
 }

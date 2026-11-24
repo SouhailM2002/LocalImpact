@@ -6,6 +6,7 @@ export { Signalement } from "./entities/signalement.js";
 export type {
   ChangeSignalementStatusInput,
   CreateSignalementInput,
+  ReconstituteSignalementInput,
 } from "./entities/signalement.js";
 export {
   DejaSoutenuError,

@@ -1,0 +1,70 @@
+import "server-only";
+
+import { randomUUID } from "node:crypto";
+import {
+  AddComment,
+  AssignResponsable,
+  AuthenticateUser,
+  ChangeSignalementStatus,
+  CreateSignalement,
+  GetDashboardStats,
+  GetSignalementById,
+  GetSignalements,
+  RegisterUser,
+  SupportSignalement,
+} from "@localimpact/application";
+import type { Clock, IdGenerator } from "@localimpact/application";
+import { createPrismaPersistence } from "@localimpact/db";
+import { LocalFileStorage, ScryptPasswordHasher } from "@localimpact/infra";
+
+const clock: Clock = {
+  now: () => new Date(),
+};
+
+const ids: IdGenerator = {
+  next: randomUUID,
+};
+
+const persistence = createPrismaPersistence(clock);
+const fileStorage = new LocalFileStorage();
+const passwordHasher = new ScryptPasswordHasher();
+
+export const container = Object.freeze({
+  createSignalement: new CreateSignalement(
+    persistence.signalements,
+    fileStorage,
+    clock,
+    ids,
+  ),
+  getSignalements: new GetSignalements(persistence.signalements),
+  getSignalementById: new GetSignalementById(persistence.signalements),
+  supportSignalement: new SupportSignalement(persistence.signalements),
+  assignResponsable: new AssignResponsable(
+    persistence.signalements,
+    persistence.users,
+  ),
+  changeSignalementStatus: new ChangeSignalementStatus(
+    persistence.signalements,
+    persistence.historiques,
+    clock,
+    ids,
+    persistence.transactions,
+  ),
+  addComment: new AddComment(
+    persistence.signalements,
+    persistence.commentaires,
+    clock,
+    ids,
+  ),
+  getDashboardStats: new GetDashboardStats(persistence.signalements),
+  registerUser: new RegisterUser(
+    persistence.users,
+    passwordHasher,
+    clock,
+    ids,
+  ),
+  authenticateUser: new AuthenticateUser(
+    persistence.users,
+    passwordHasher,
+  ),
+});
