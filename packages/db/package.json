@@ -4,11 +4,30 @@
   "private": true,
   "type": "module",
   "description": "Prisma-specific LocalImpact database infrastructure.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "lint": "eslint . --no-error-on-unmatched-pattern"
+    "build": "pnpm db:generate && tsc --project tsconfig.build.json",
+    "db:generate": "prisma generate --config prisma.config.ts",
+    "db:validate": "prisma validate --config prisma.config.ts",
+    "lint": "eslint . --no-error-on-unmatched-pattern",
+    "test": "pnpm db:generate",
+    "typecheck": "pnpm db:generate && tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
     "@localimpact/application": "workspace:*",
-    "@localimpact/domain": "workspace:*"
+    "@localimpact/domain": "workspace:*",
+    "@prisma/client": "6.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "dotenv": "^16.4.7",
+    "prisma": "6.19.0"
   }
 }

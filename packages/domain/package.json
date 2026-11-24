@@ -4,7 +4,21 @@
   "private": true,
   "type": "module",
   "description": "Framework-independent LocalImpact domain model.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "lint": "eslint . --no-error-on-unmatched-pattern"
+    "build": "tsc --project tsconfig.build.json",
+    "lint": "eslint . --no-error-on-unmatched-pattern",
+    "typecheck": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project tests/tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.12"
   }
 }
