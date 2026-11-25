@@ -2,13 +2,19 @@ export type {
   ActorContext,
   CategoryReportCount,
   CommentaireDto,
+  CommentaireDetailDto,
   DashboardStatsDto,
   HistoriqueStatutDto,
+  HistoriqueStatutDetailDto,
   NewUserRecord,
   PhotoUpload,
   SignalementDto,
+  SignalementDetailDto,
+  SignalementListItemDto,
   SignalementSearchQuery,
+  SignalementsPageDto,
   UserDto,
+  UserDisplayName,
   UserRecord,
   UserRole,
 } from "./dto.js";
@@ -55,6 +61,8 @@ export type { CreateSignalementInput } from "./use-cases/create-signalement.js";
 export { GetDashboardStats } from "./use-cases/get-dashboard-stats.js";
 export { GetSignalementById } from "./use-cases/get-signalement-by-id.js";
 export type { GetSignalementByIdInput } from "./use-cases/get-signalement-by-id.js";
+export { GetSignalementDetail } from "./use-cases/get-signalement-detail.js";
+export type { GetSignalementDetailInput } from "./use-cases/get-signalement-detail.js";
 export { GetSignalements } from "./use-cases/get-signalements.js";
 export type { GetSignalementsInput } from "./use-cases/get-signalements.js";
 export { RegisterUser } from "./use-cases/register-user.js";

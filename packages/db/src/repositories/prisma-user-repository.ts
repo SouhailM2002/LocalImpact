@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
   NewUserRecord,
+  UserDisplayName,
   UserRecord,
   UserRepository,
 } from "@localimpact/application";
@@ -15,7 +16,7 @@ function toUserRecord(user: {
   id: string;
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash: string | null;
   role: UserRecord["role"];
   createdAt: Date;
 }): UserRecord {
@@ -57,6 +58,19 @@ export class PrismaUserRepository implements UserRepository {
     });
 
     return user === null ? null : toUserRecord(user);
+  }
+
+  async findDisplayNames(userIds: readonly string[]): Promise<readonly UserDisplayName[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const users = await getPrismaExecutor(this.prisma).user.findMany({
+      where: { id: { in: [...userIds] } },
+      select: { id: true, name: true },
+    });
+
+    return users.map(({ id, name }) => ({ id, displayName: name }));
   }
 
   async create(user: NewUserRecord): Promise<UserRecord> {

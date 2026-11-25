@@ -23,7 +23,11 @@ export class AuthenticateUser {
     }
 
     const user = await this.users.findByEmail(email);
-    if (user === null || !(await this.passwordHasher.verify(input.password, user.passwordHash))) {
+    if (
+      user === null ||
+      user.passwordHash === null ||
+      !(await this.passwordHasher.verify(input.password, user.passwordHash))
+    ) {
       throw new InvalidCredentialsError();
     }
 

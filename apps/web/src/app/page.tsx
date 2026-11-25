@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { Badge, Card } from "@localimpact/ui";
 
 import { AppIcon } from "../components/app-icon";
+import { getAuthenticatedUser } from "../lib/auth-session";
 
 const highlights = [
   {
@@ -23,7 +25,9 @@ const highlights = [
   },
 ] as const;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const viewer = await getAuthenticatedUser();
+
   return (
     <div className="space-y-8">
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-800 via-teal-700 to-emerald-700 px-6 py-9 text-white shadow-lg shadow-teal-950/10 sm:px-9 sm:py-12 lg:px-12">
@@ -41,6 +45,41 @@ export default function HomePage() {
             Signalez les problèmes de votre campus ou de votre résidence,
             suivez leur évolution et contribuez à des solutions durables.
           </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            {viewer === null ? (
+              <>
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-teal-900 transition-colors hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  href="/register"
+                >
+                  Créer un compte
+                </Link>
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/40 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  href="/login"
+                >
+                  Se connecter
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-teal-900 transition-colors hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  href="/reports"
+                >
+                  Explorer les signalements
+                </Link>
+                {viewer.role === "USER" && (
+                  <Link
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/40 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    href="/reports/new"
+                  >
+                    Créer un signalement
+                  </Link>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </section>
 
@@ -83,10 +122,14 @@ export default function HomePage() {
               Votre espace LocalImpact
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-600">
-              Les signalements, tableaux de bord et outils par rôle seront accessibles ici.
+              {viewer === null
+                ? "Créez un compte ou connectez-vous pour commencer à explorer les signalements."
+                : "Explorez les signalements de votre communauté et suivez leur évolution."}
             </p>
           </div>
-          <Badge className="w-fit" variant="info">Plateforme en préparation</Badge>
+          <Badge className="w-fit" variant="success">
+            {viewer === null ? "Ouvert à la communauté" : "Espace actif"}
+          </Badge>
         </Card>
       </section>
     </div>

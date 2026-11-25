@@ -9,6 +9,7 @@ import {
   CreateSignalement,
   GetDashboardStats,
   GetSignalementById,
+  GetSignalementDetail,
   GetSignalements,
   RegisterUser,
   SupportSignalement,
@@ -28,6 +29,7 @@ const ids: IdGenerator = {
 const persistence = createPrismaPersistence(clock);
 const fileStorage = new LocalFileStorage();
 const passwordHasher = new ScryptPasswordHasher();
+const getSignalementById = new GetSignalementById(persistence.signalements);
 
 export const container = Object.freeze({
   createSignalement: new CreateSignalement(
@@ -36,8 +38,17 @@ export const container = Object.freeze({
     clock,
     ids,
   ),
-  getSignalements: new GetSignalements(persistence.signalements),
-  getSignalementById: new GetSignalementById(persistence.signalements),
+  getSignalements: new GetSignalements(
+    persistence.signalements,
+    persistence.users,
+  ),
+  getSignalementById,
+  getSignalementDetail: new GetSignalementDetail(
+    getSignalementById,
+    persistence.commentaires,
+    persistence.historiques,
+    persistence.users,
+  ),
   supportSignalement: new SupportSignalement(persistence.signalements),
   assignResponsable: new AssignResponsable(
     persistence.signalements,

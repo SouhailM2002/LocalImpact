@@ -7,7 +7,7 @@ import {
 } from "@localimpact/domain";
 import type { HistoriqueStatut } from "@localimpact/domain";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { Clock, UserRecord } from "@localimpact/application";
+import type { Clock, NewUserRecord } from "@localimpact/application";
 import {
   InMemoryCommentaireRepository,
   InMemoryHistoriqueRepository,
@@ -38,7 +38,7 @@ function makeSignalement(id: string, created = createdAt): Signalement {
   });
 }
 
-function makeUser(overrides: Partial<UserRecord> = {}): UserRecord {
+function makeUser(overrides: Partial<NewUserRecord> = {}): NewUserRecord {
   return {
     id: "user-1",
     displayName: "User One",
@@ -117,6 +117,34 @@ describe("InMemorySignalementRepository", () => {
     expect(result).toEqual([second]);
     expect(Object.isFrozen(result)).toBe(true);
     expect(await repository.findAll({ status: "EN_COURS" })).toEqual([]);
+  });
+
+  it("combines keyword, category, location, status, and assignment filters for pages and counts", async () => {
+    const matching = makeSignalement("matching", new Date("2025-03-03T10:00:00.000Z"));
+    matching.assignToResponsable("responsable-2");
+    const wrongKeyword = makeSignalement("wrong-keyword");
+    wrongKeyword.assignToResponsable("responsable-2");
+    const wrongAssignment = makeSignalement(
+      "wrong-assignment",
+      new Date("2025-03-04T10:00:00.000Z"),
+    );
+    wrongAssignment.assignToResponsable("responsable-3");
+    await repository.create(matching);
+    await repository.create(wrongKeyword);
+    await repository.create(wrongAssignment);
+
+    const query = {
+      keyword: "description for matching",
+      category: "plomberie",
+      location: "floor 2",
+      status: "NOUVEAU" as const,
+      assignedResponsableId: "responsable-2",
+      page: 1,
+      pageSize: 10,
+    };
+
+    await expect(repository.findAll(query)).resolves.toEqual([matching]);
+    await expect(repository.countAll(query)).resolves.toBe(1);
   });
 
   it("enforces unique user supports and returns the support count", async () => {
@@ -203,6 +231,14 @@ describe("InMemoryUserRepository", () => {
       .rejects.toMatchObject({ code: "USER_EMAIL_ALREADY_EXISTS" });
     await expect(repository.create(makeUser({ email: "other@example.test" })))
       .rejects.toMatchObject({ code: "RECORD_ALREADY_EXISTS" });
+  });
+
+  it("returns only display names for a requested set of user IDs", async () => {
+    const repository = new InMemoryUserRepository();
+    await repository.create({ ...makeUser(), passwordHash: "hashed-password" });
+
+    await expect(repository.findDisplayNames(["user-1", "missing"]))
+      .resolves.toEqual([{ id: "user-1", displayName: "User One" }]);
   });
 });
 

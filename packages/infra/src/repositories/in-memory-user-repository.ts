@@ -1,5 +1,6 @@
 import type {
   NewUserRecord,
+  UserDisplayName,
   UserRepository,
   UserRecord,
 } from "@localimpact/application";
@@ -33,6 +34,17 @@ export class InMemoryUserRepository implements UserRepository {
 
     const user = this.usersById.get(userId);
     return Promise.resolve(user === undefined ? null : copyUser(user));
+  }
+
+  findDisplayNames(userIds: readonly string[]): Promise<readonly UserDisplayName[]> {
+    const result = userIds.flatMap((id) => {
+      const user = this.usersById.get(id);
+      return user === undefined
+        ? []
+        : [{ id: user.id, displayName: user.displayName }];
+    });
+
+    return Promise.resolve(Object.freeze(result));
   }
 
   create(user: NewUserRecord): Promise<UserRecord> {

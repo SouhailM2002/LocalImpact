@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { Badge, Button, Card, Input } from "../src/index.js";
+import { Badge, Button, Card, Input, Textarea } from "../src/index.js";
 
 describe("shared UI primitives", () => {
   it("preserves native button disabled semantics", () => {
@@ -19,11 +19,14 @@ describe("shared UI primitives", () => {
       <Card>
         <Badge variant="success">Ready</Badge>
         <Input aria-label="Search reports" aria-invalid="true" />
+        <Textarea aria-label="Report details" required />
       </Card>,
     );
 
     expect(markup).toContain("aria-label=\"Search reports\"");
     expect(markup).toContain("aria-invalid=\"true\"");
+    expect(markup).toContain("aria-label=\"Report details\"");
+    expect(markup).toContain("required=\"\"");
     expect(markup).toContain("Ready");
   });
 });

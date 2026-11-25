@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { UserRole } from "@localimpact/application";
 import { Badge, Card, Input, buttonClassName } from "@localimpact/ui";
 
+import { logoutAction } from "../features/auth/actions";
 import { AppIcon, type AppIconName } from "./app-icon";
 
 export interface AppViewer {
@@ -234,11 +235,35 @@ function ProfileMenu({ viewer }: { readonly viewer: AppViewer | null }) {
           <>
             <p className="mt-1 truncate text-xs text-slate-500">{viewer.email}</p>
             <Badge className="mt-3" variant="neutral">{roleLabel}</Badge>
+            <form action={logoutAction} className="mt-4 border-t border-slate-100 pt-3">
+              <button
+                className="w-full rounded-lg px-2 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+                type="submit"
+              >
+                Se déconnecter
+              </button>
+            </form>
           </>
         ) : (
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            Les informations de compte apparaîtront après la mise en place de la connexion.
-          </p>
+          <>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Connectez-vous ou créez un compte pour participer à la vie de votre communauté.
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Link
+                className={buttonClassName("secondary", "sm")}
+                href="/login"
+              >
+                Connexion
+              </Link>
+              <Link
+                className={buttonClassName("primary", "sm")}
+                href="/register"
+              >
+                Inscription
+              </Link>
+            </div>
+          </>
         )}
       </div>
     </details>
@@ -291,6 +316,22 @@ export function AppShell({
                   />
                 </div>
                 <NotificationsMenu />
+                {!viewer && (
+                  <nav aria-label="Compte" className="hidden items-center gap-1 sm:flex">
+                    <Link
+                      className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                      href="/login"
+                    >
+                      Connexion
+                    </Link>
+                    <Link
+                      className="rounded-lg px-3 py-2 text-sm font-semibold text-teal-800 hover:bg-teal-50"
+                      href="/register"
+                    >
+                      Créer un compte
+                    </Link>
+                  </nav>
+                )}
                 <ProfileMenu viewer={viewer} />
               </div>
             </div>

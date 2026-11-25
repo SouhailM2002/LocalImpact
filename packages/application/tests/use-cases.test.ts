@@ -1,12 +1,14 @@
 import {
   DejaSoutenuError,
   DescriptionInterventionRequiseError,
+  Commentaire,
+  HistoriqueStatut,
   Signalement,
   SignalementId,
   SignalementNotFoundError,
+  Statut,
   UnauthorizedDomainOperationError,
 } from "@localimpact/domain";
-import type { Commentaire, HistoriqueStatut } from "@localimpact/domain";
 import { beforeEach, describe, expect, it } from "vitest";
 import type {
   CategoryReportCount,
@@ -23,6 +25,7 @@ import {
   CreateSignalement,
   GetDashboardStats,
   GetSignalementById,
+  GetSignalementDetail,
   GetSignalements,
   InvalidCredentialsError,
   RegisterUser,
@@ -80,6 +83,7 @@ class FakeSignalementRepository implements SignalementRepository {
   readonly items = new Map<string, Signalement>();
   readonly supports = new Map<string, Set<string>>();
   readonly queries: SignalementSearchQuery[] = [];
+  readonly countQueries: SignalementSearchQuery[] = [];
   readonly categoryCounts: readonly CategoryReportCount[] = [
     { category: "Plomberie", count: 1 },
   ];
@@ -99,9 +103,39 @@ class FakeSignalementRepository implements SignalementRepository {
     return Promise.resolve(this.items.get(id.value) ?? null);
   }
 
+  private matchingReports(query: SignalementSearchQuery): Signalement[] {
+    const keyword = query.keyword?.toLowerCase();
+    const location = query.location?.toLowerCase();
+
+    return [...this.items.values()].filter((report) => (
+      (keyword === undefined ||
+        report.title.toLowerCase().includes(keyword) ||
+        report.description.toLowerCase().includes(keyword)) &&
+      (query.category === undefined ||
+        report.category.toLowerCase() === query.category.toLowerCase()) &&
+      (location === undefined ||
+        report.location.toLowerCase().includes(location)) &&
+      (query.status === undefined || report.status.value === query.status) &&
+      (query.assignedResponsableId === undefined ||
+        report.assignedResponsableId === query.assignedResponsableId)
+    ));
+  }
+
   findAll(query: SignalementSearchQuery): Promise<readonly Signalement[]> {
     this.queries.push(query);
-    return Promise.resolve([...this.items.values()]);
+    const results = this.matchingReports(query);
+    if (query.page === undefined && query.pageSize === undefined) {
+      return Promise.resolve(results);
+    }
+
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    return Promise.resolve(results.slice((page - 1) * pageSize, page * pageSize));
+  }
+
+  countAll(query: SignalementSearchQuery): Promise<number> {
+    this.countQueries.push(query);
+    return Promise.resolve(this.matchingReports(query).length);
   }
 
   addSupportIfAbsent(id: SignalementId, userId: string): Promise<number | null> {
@@ -145,6 +179,13 @@ class FakeUserRepository implements UserRepository {
 
   findByEmail(email: string): Promise<UserRecord | null> {
     return Promise.resolve([...this.items.values()].find((user) => user.email === email) ?? null);
+  }
+
+  findDisplayNames(userIds: readonly string[]) {
+    return Promise.resolve(userIds.flatMap((id) => {
+      const user = this.items.get(id);
+      return user === undefined ? [] : [{ id, displayName: user.displayName }];
+    }));
   }
 
   create(user: NewUserRecord): Promise<UserRecord> {
@@ -274,6 +315,7 @@ describe("Application use cases", () => {
 
   it("lists reports using the supplied search and pagination filters", async () => {
     signalements.items.set("report-1", makeSignalement());
+    users.items.set("user-1", makeUser("user-1", "USER"));
     const query: SignalementSearchQuery = {
       keyword: "light",
       category: "Electrical",
@@ -283,13 +325,25 @@ describe("Application use cases", () => {
       pageSize: 10,
     };
 
-    const result = await new GetSignalements(signalements).execute({
+    const result = await new GetSignalements(signalements, users).execute({
       actor: { userId: "user-1", role: "USER" },
       query,
     });
 
-    expect(result).toHaveLength(1);
+    expect(result).toMatchObject({
+      reports: [{ id: "report-1", creatorDisplayName: "user-1" }],
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      totalPages: 1,
+    });
     expect(signalements.queries).toEqual([query]);
+    expect(signalements.countQueries).toEqual([{
+      keyword: "light",
+      category: "Electrical",
+      location: "Building A",
+      status: "NOUVEAU",
+    }]);
   });
 
   it("scopes responsable report lists to their own assignments", async () => {
@@ -298,7 +352,7 @@ describe("Application use cases", () => {
     signalements.items.set("assigned", assigned);
     signalements.items.set("unassigned", makeSignalement("unassigned"));
 
-    const results = await new GetSignalements(signalements).execute({
+    const results = await new GetSignalements(signalements, users).execute({
       actor: { userId: "responsable-1", role: "RESPONSABLE" },
       query: {
         category: "Electrical",
@@ -309,12 +363,37 @@ describe("Application use cases", () => {
     expect(signalements.queries).toEqual([{
       category: "Electrical",
       assignedResponsableId: "responsable-1",
+      page: 1,
+      pageSize: 20,
     }]);
-    expect(results.map((result) => result.id)).toEqual(["assigned"]);
+    expect(results.reports.map((result) => result.id)).toEqual(["assigned"]);
+    expect(results.totalCount).toBe(1);
+    expect(signalements.countQueries).toEqual([{
+      category: "Electrical",
+      assignedResponsableId: "responsable-1",
+    }]);
+  });
+
+  it("reports pagination totals and clamps pages past the final result", async () => {
+    signalements.items.set("report-1", makeSignalement("report-1"));
+    signalements.items.set("report-2", makeSignalement("report-2"));
+
+    const result = await new GetSignalements(signalements, users).execute({
+      actor: { userId: "user-1", role: "USER" },
+      query: { page: 8, pageSize: 1 },
+    });
+
+    expect(result).toMatchObject({
+      reports: [{ id: "report-2" }],
+      page: 2,
+      pageSize: 1,
+      totalCount: 2,
+      totalPages: 2,
+    });
   });
 
   it("rejects invalid pagination", async () => {
-    await expect(new GetSignalements(signalements).execute({
+    await expect(new GetSignalements(signalements, users).execute({
       actor: { userId: "user-1", role: "USER" },
       query: { pageSize: 101 },
     }))
@@ -337,6 +416,84 @@ describe("Application use cases", () => {
       actor: { userId: "responsable-1", role: "RESPONSABLE" },
       signalementId: "report-1",
     })).rejects.toBeInstanceOf(UnauthorizedDomainOperationError);
+  });
+
+  it("loads detail authors and orders comments and status history chronologically", async () => {
+    const report = makeSignalement("report-detail");
+    report.assignToResponsable("responsable-1");
+    signalements.items.set(report.id.value, report);
+    users.items.set("user-1", makeUser("user-1", "USER"));
+    users.items.set("responsable-1", makeUser("responsable-1", "RESPONSABLE"));
+    users.items.set("admin-1", makeUser("admin-1", "ADMIN"));
+    users.items.set("user-2", makeUser("user-2", "USER"));
+
+    const earlier = new Date(fixedDate.getTime() + 1_000);
+    const later = new Date(fixedDate.getTime() + 2_000);
+    histories.items.push(
+      HistoriqueStatut.create({
+        id: "history-later",
+        signalementId: report.id,
+        previousStatus: Statut.from("PRIS_EN_CHARGE"),
+        newStatus: Statut.from("EN_COURS"),
+        authorId: "admin-1",
+        changedAt: later,
+      }),
+      HistoriqueStatut.create({
+        id: "history-earlier",
+        signalementId: report.id,
+        previousStatus: Statut.from("NOUVEAU"),
+        newStatus: Statut.from("PRIS_EN_CHARGE"),
+        authorId: "responsable-1",
+        changedAt: earlier,
+      }),
+    );
+    commentaires.items.push(
+      Commentaire.create({
+        id: "comment-later",
+        signalementId: report.id,
+        authorId: "user-2",
+        content: "A later comment",
+        createdAt: later,
+      }),
+      Commentaire.create({
+        id: "comment-earlier",
+        signalementId: report.id,
+        authorId: "user-1",
+        content: "An earlier comment",
+        createdAt: earlier,
+      }),
+    );
+
+    const detail = await new GetSignalementDetail(
+      new GetSignalementById(signalements),
+      commentaires,
+      histories,
+      users,
+    ).execute({
+      actor: { userId: "user-1", role: "USER" },
+      signalementId: report.id.value,
+    });
+
+    expect(detail.report).toMatchObject({
+      creatorDisplayName: "user-1",
+      assignedResponsableDisplayName: "responsable-1",
+    });
+    expect(detail.statusHistory.map(({ id, authorDisplayName }) => ({
+      id,
+      authorDisplayName,
+    }))).toEqual([
+      { id: "history-earlier", authorDisplayName: "responsable-1" },
+      { id: "history-later", authorDisplayName: "admin-1" },
+    ]);
+    expect(detail.comments.map(({ id, authorDisplayName }) => ({
+      id,
+      authorDisplayName,
+    }))).toEqual([
+      { id: "comment-earlier", authorDisplayName: "user-1" },
+      { id: "comment-later", authorDisplayName: "user-2" },
+    ]);
+    expect(JSON.stringify(detail)).not.toContain("passwordHash");
+    expect(JSON.stringify(detail)).not.toContain("email");
   });
 
   it("records support exactly once per user", async () => {
@@ -523,6 +680,19 @@ describe("Application use cases", () => {
     await expect(authenticate.execute({
       email: "user@example.test",
       password: "wrong-password",
+    })).rejects.toBeInstanceOf(InvalidCredentialsError);
+  });
+
+  it("rejects authentication when a user has no legacy password hash", async () => {
+    users.items.set("user-1", {
+      ...makeUser("user-1", "USER", "user@example.test"),
+      passwordHash: null,
+    });
+    const authenticate = new AuthenticateUser(users, new FakePasswordHasher());
+
+    await expect(authenticate.execute({
+      email: "user@example.test",
+      password: "password123",
     })).rejects.toBeInstanceOf(InvalidCredentialsError);
   });
 });

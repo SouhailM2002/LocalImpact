@@ -7,6 +7,7 @@ export interface SignalementRepository {
   save(signalement: Signalement): Promise<void>;
   findById(id: SignalementId): Promise<Signalement | null>;
   findAll(query: SignalementSearchQuery): Promise<readonly Signalement[]>;
+  countAll(query: SignalementSearchQuery): Promise<number>;
 
   /**
    * Atomically records a user's support and returns the updated count.

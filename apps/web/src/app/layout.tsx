@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 
 import { AppShell } from "../components/app-shell";
+import { getAuthenticatedUser } from "../lib/auth-session";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,13 +19,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
+  const viewer = await getAuthenticatedUser();
+
   return (
     <html lang="fr">
       <body>
-        <AppShell>{children}</AppShell>
+        <AppShell viewer={viewer}>{children}</AppShell>
       </body>
     </html>
   );

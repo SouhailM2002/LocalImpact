@@ -1,0 +1,95 @@
+import { z } from "zod";
+
+export const MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
+export const SUPPORTED_PHOTO_TYPES = [
+  "image/avif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const createSignalementFields = [
+  "title",
+  "description",
+  "category",
+  "location",
+  "photo",
+] as const;
+
+export type CreateSignalementField = typeof createSignalementFields[number];
+
+export interface CreateSignalementFormState {
+  readonly message: string;
+  readonly fieldErrors: Partial<Record<CreateSignalementField, string>>;
+}
+
+function isCreateSignalementField(value: unknown): value is CreateSignalementField {
+  return typeof value === "string"
+    && createSignalementFields.some((field) => field === value);
+}
+
+export function getCreateSignalementFieldErrors(
+  issues: readonly { readonly path: readonly PropertyKey[]; readonly message: string }[],
+): Partial<Record<CreateSignalementField, string>> {
+  const fieldErrors: Partial<Record<CreateSignalementField, string>> = {};
+
+  for (const issue of issues) {
+    const field = issue.path[0];
+    if (isCreateSignalementField(field) && fieldErrors[field] === undefined) {
+      fieldErrors[field] = issue.message;
+    }
+  }
+
+  return fieldErrors;
+}
+
+export function isUploadedFile(value: unknown): value is File {
+  return typeof value === "object"
+    && value !== null
+    && "name" in value
+    && typeof value.name === "string"
+    && "type" in value
+    && typeof value.type === "string"
+    && "size" in value
+    && typeof value.size === "number"
+    && "arrayBuffer" in value
+    && typeof value.arrayBuffer === "function";
+}
+
+const photoSchema = z.custom<File>(
+  isUploadedFile,
+  "Sélectionnez un fichier image valide.",
+)
+  .optional()
+  .refine((file) => file === undefined || file.size > 0, {
+    message: "Le fichier image est vide.",
+  })
+  .refine((file) => file === undefined || file.size <= MAX_PHOTO_SIZE_BYTES, {
+    message: "La photo ne peut pas dépasser 5 Mo.",
+  })
+  .refine(
+    (file) => file === undefined || SUPPORTED_PHOTO_TYPES.some(
+      (type) => type === file.type,
+    ),
+    { message: "Utilisez une image JPEG, PNG, WebP ou AVIF." },
+  );
+
+export const createSignalementSchema = z.object({
+  title: z.string()
+    .trim()
+    .min(3, "Le titre doit contenir au moins 3 caractères.")
+    .max(120, "Le titre ne peut pas dépasser 120 caractères."),
+  description: z.string()
+    .trim()
+    .min(10, "La description doit contenir au moins 10 caractères.")
+    .max(3000, "La description ne peut pas dépasser 3 000 caractères."),
+  category: z.string()
+    .trim()
+    .min(2, "Saisissez une catégorie.")
+    .max(80, "La catégorie ne peut pas dépasser 80 caractères."),
+  location: z.string()
+    .trim()
+    .min(2, "Saisissez un lieu.")
+    .max(160, "Le lieu ne peut pas dépasser 160 caractères."),
+  photo: photoSchema,
+});

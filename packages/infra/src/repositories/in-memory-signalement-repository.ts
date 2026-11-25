@@ -16,6 +16,41 @@ function equalIgnoreCase(left: string, right: string): boolean {
   return left.toLowerCase() === right.toLowerCase();
 }
 
+function findMatchingSignalements(
+  signalements: Iterable<Signalement>,
+  query: SignalementSearchQuery,
+): Signalement[] {
+  const keyword = query.keyword?.toLowerCase();
+  const location = query.location?.toLowerCase();
+
+  return [...signalements]
+    .filter((signalement) => (
+      keyword === undefined ||
+      signalement.title.toLowerCase().includes(keyword) ||
+      signalement.description.toLowerCase().includes(keyword)
+    ))
+    .filter((signalement) => (
+      query.category === undefined ||
+      equalIgnoreCase(signalement.category, query.category)
+    ))
+    .filter((signalement) => (
+      location === undefined ||
+      signalement.location.toLowerCase().includes(location)
+    ))
+    .filter((signalement) => (
+      query.status === undefined ||
+      signalement.status.value === query.status
+    ))
+    .filter((signalement) => (
+      query.assignedResponsableId === undefined ||
+      signalement.assignedResponsableId === query.assignedResponsableId
+    ))
+    .sort((left, right) => (
+      right.createdAt.getTime() - left.createdAt.getTime() ||
+      left.id.value.localeCompare(right.id.value)
+    ));
+}
+
 export class InMemorySignalementRepository implements SignalementRepository {
   private readonly signalements = new Map<string, Signalement>();
   private readonly supports = new Map<string, Set<string>>();
@@ -72,34 +107,7 @@ export class InMemorySignalementRepository implements SignalementRepository {
   }
 
   findAll(query: SignalementSearchQuery): Promise<readonly Signalement[]> {
-    const keyword = query.keyword?.toLowerCase();
-    const location = query.location?.toLowerCase();
-    const results = [...this.signalements.values()]
-      .filter((signalement) => (
-        keyword === undefined ||
-        signalement.title.toLowerCase().includes(keyword) ||
-        signalement.description.toLowerCase().includes(keyword)
-      ))
-      .filter((signalement) => (
-        query.category === undefined ||
-        equalIgnoreCase(signalement.category, query.category)
-      ))
-      .filter((signalement) => (
-        location === undefined ||
-        signalement.location.toLowerCase().includes(location)
-      ))
-      .filter((signalement) => (
-        query.status === undefined ||
-        signalement.status.value === query.status
-      ))
-      .filter((signalement) => (
-        query.assignedResponsableId === undefined ||
-        signalement.assignedResponsableId === query.assignedResponsableId
-      ))
-      .sort((left, right) => (
-        right.createdAt.getTime() - left.createdAt.getTime() ||
-        left.id.value.localeCompare(right.id.value)
-      ));
+    const results = findMatchingSignalements(this.signalements.values(), query);
 
     if (query.page === undefined && query.pageSize === undefined) {
       return Promise.resolve(Object.freeze(results));
@@ -109,6 +117,10 @@ export class InMemorySignalementRepository implements SignalementRepository {
     const pageSize = query.pageSize ?? 20;
     const start = (page - 1) * pageSize;
     return Promise.resolve(Object.freeze(results.slice(start, start + pageSize)));
+  }
+
+  countAll(query: SignalementSearchQuery): Promise<number> {
+    return Promise.resolve(findMatchingSignalements(this.signalements.values(), query).length);
   }
 
   addSupportIfAbsent(signalementId: SignalementId, userId: string): Promise<number | null> {

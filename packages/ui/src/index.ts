@@ -6,3 +6,5 @@ export { Card } from "./components/card.js";
 export type { CardProps } from "./components/card.js";
 export { Input } from "./components/input.js";
 export type { InputProps } from "./components/input.js";
+export { Textarea } from "./components/textarea.js";
+export type { TextareaProps } from "./components/textarea.js";

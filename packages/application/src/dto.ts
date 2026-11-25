@@ -41,6 +41,18 @@ export interface SignalementDto {
   readonly supportCount: number;
 }
 
+export interface SignalementListItemDto extends SignalementDto {
+  readonly creatorDisplayName: string | null;
+}
+
+export interface SignalementsPageDto {
+  readonly reports: readonly SignalementListItemDto[];
+  readonly page: number;
+  readonly pageSize: number;
+  readonly totalCount: number;
+  readonly totalPages: number;
+}
+
 export interface CommentaireDto {
   readonly id: string;
   readonly signalementId: string;
@@ -59,16 +71,35 @@ export interface HistoriqueStatutDto {
   readonly interventionDescription: string | undefined;
 }
 
+export interface CommentaireDetailDto extends CommentaireDto {
+  readonly authorDisplayName: string | null;
+}
+
+export interface HistoriqueStatutDetailDto extends HistoriqueStatutDto {
+  readonly authorDisplayName: string | null;
+}
+
+export interface SignalementDetailDto {
+  readonly report: SignalementDto & {
+    readonly creatorDisplayName: string | null;
+    readonly assignedResponsableDisplayName: string | null;
+  };
+  readonly statusHistory: readonly HistoriqueStatutDetailDto[];
+  readonly comments: readonly CommentaireDetailDto[];
+}
+
 export interface UserRecord {
   readonly id: string;
   readonly displayName: string;
   readonly email: string;
-  readonly passwordHash: string;
+  readonly passwordHash: string | null;
   readonly role: UserRole;
   readonly createdAt: Date;
 }
 
-export type NewUserRecord = UserRecord;
+export type NewUserRecord = Omit<UserRecord, "passwordHash"> & {
+  readonly passwordHash: string;
+};
 
 export interface UserDto {
   readonly id: string;
@@ -76,6 +107,11 @@ export interface UserDto {
   readonly email: string;
   readonly role: UserRole;
   readonly createdAt: Date;
+}
+
+export interface UserDisplayName {
+  readonly id: string;
+  readonly displayName: string;
 }
 
 export interface CategoryReportCount {

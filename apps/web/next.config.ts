@@ -1,10 +1,16 @@
 import { loadEnvConfig } from "@next/env";
 import type { NextConfig } from "next";
-import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-loadEnvConfig(resolve(process.cwd(), "../.."), process.env.NODE_ENV === "development");
+const workspaceRoot = fileURLToPath(new URL("../../", import.meta.url));
+loadEnvConfig(workspaceRoot, process.env.NODE_ENV === "development");
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "6mb",
+    },
+  },
   transpilePackages: [
     "@localimpact/application",
     "@localimpact/db",
