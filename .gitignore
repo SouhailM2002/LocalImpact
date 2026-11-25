@@ -8,6 +8,9 @@ build/
 out/
 .turbo/
 coverage/
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/.next-e2e/
 *.tsbuildinfo
 apps/web/public/uploads/
 

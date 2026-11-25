@@ -6,6 +6,9 @@ const workspaceRoot = fileURLToPath(new URL("../../", import.meta.url));
 loadEnvConfig(workspaceRoot, process.env.NODE_ENV === "development");
 
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  output: "standalone",
+  outputFileTracingRoot: workspaceRoot,
   experimental: {
     serverActions: {
       bodySizeLimit: "6mb",

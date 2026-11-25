@@ -54,6 +54,21 @@ describe("submitCreateSignalementForm", () => {
     expect(receivedInput).not.toHaveProperty("creatorId");
   });
 
+  it("treats the browser's empty file control value as no photo", async () => {
+    let receivedInput: CreateSignalementInput | undefined;
+    const result = await submitCreateSignalementForm(
+      validFormData(new File([], "undefined", { type: "application/octet-stream" })),
+      userActor,
+      (input) => {
+        receivedInput = input;
+        return Promise.resolve({ id: "report-without-photo" });
+      },
+    );
+
+    expect(result).toEqual({ ok: true, signalementId: "report-without-photo" });
+    expect(receivedInput).not.toHaveProperty("photo");
+  });
+
   it("rejects unauthenticated, unauthorized, and invalid submissions before creation", async () => {
     const execute = vi.fn(() => Promise.resolve({ id: "should-not-be-created" }));
 

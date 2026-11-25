@@ -34,12 +34,21 @@ function failed(
 }
 
 function optionalPhoto(value: FormDataEntryValue | null): unknown {
+  if (value === null) {
+    return undefined;
+  }
+
   if (
-    value === null ||
-    (isUploadedFile(value) && value.name === "" && value.size === 0)
+    isUploadedFile(value)
+    && value.size === 0
+    && (
+      value.name === ""
+      || (value.name === "undefined" && value.type === "application/octet-stream")
+    )
   ) {
     return undefined;
   }
+
   return value;
 }
 

@@ -18,6 +18,9 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "@localimpact/db#typecheck": {
+      "dependsOn": ["^build", "build"]
+    },
     "test": {
       "dependsOn": ["^build"],
       "outputs": []

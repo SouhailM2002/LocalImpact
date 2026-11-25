@@ -1,0 +1,16 @@
+name: localimpact-e2e
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: localimpact_e2e
+      POSTGRES_USER: localimpact_e2e
+      POSTGRES_PASSWORD: localimpact_e2e
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U localimpact_e2e -d localimpact_e2e"]
+      interval: 2s
+      timeout: 2s
+      retries: 30

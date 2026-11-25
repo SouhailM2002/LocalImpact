@@ -15,9 +15,12 @@
   "scripts": {
     "build": "pnpm db:generate && tsc --project tsconfig.build.json",
     "db:generate": "prisma generate --config prisma.config.ts",
+    "db:migrate:deploy": "prisma migrate deploy --config prisma.config.ts",
+    "db:migrate:status": "prisma migrate status --config prisma.config.ts",
     "db:validate": "prisma validate --config prisma.config.ts",
     "lint": "eslint . --no-error-on-unmatched-pattern",
-    "test": "pnpm db:generate",
+    "test": "pnpm test:integration",
+    "test:integration": "pnpm --filter @localimpact/db... build && node --test tests/*.integration.mjs",
     "typecheck": "pnpm db:generate && tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
@@ -26,6 +29,7 @@
     "@prisma/client": "6.19.0"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "^12.2.2",
     "@types/node": "^20.0.0",
     "dotenv": "^16.4.7",
     "prisma": "6.19.0"
