@@ -39,7 +39,7 @@ function Sidebar({
   readonly viewer: AppViewer | null;
 }) {
   return (
-    <aside className="hidden w-[264px] shrink-0 flex-col border-r-2 border-slate-900 bg-white px-5 py-6 lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-[264px] shrink-0 flex-col overflow-y-auto border-r-2 border-slate-900 bg-white px-5 py-6 lg:flex">
       <Brand />
       <p className="mb-9 mt-3 pl-1 text-xs leading-5 text-slate-600">
         Agir ensemble pour un meilleur cadre de vie.
@@ -85,7 +85,7 @@ function MobileNavigation({
       >
         <AppIcon className="size-5" name="menu" />
       </summary>
-      <div className="absolute left-0 top-12 z-50 w-[min(20rem,calc(100vw-2rem))] border-2 border-slate-900 bg-white p-3 shadow-lg shadow-slate-950/10">
+      <div className="absolute left-0 top-12 z-50 max-h-[calc(100dvh-4rem)] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain border-2 border-slate-900 bg-white p-3 shadow-lg shadow-slate-950/10">
         <div className="mb-3 px-3 py-2">
           <Brand />
         </div>

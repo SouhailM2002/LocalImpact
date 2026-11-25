@@ -7,8 +7,8 @@ import { InteractiveMap } from "./interactive-map";
 import type { MapCoordinates } from "./map-types";
 
 const defaultMapCenter: MapCoordinates = {
-  latitude: 0,
-  longitude: 0,
+  latitude: 36.8665,
+  longitude: 10.1647,
 };
 
 export function MapPinPicker({
@@ -71,7 +71,7 @@ export function MapPinPicker({
         center={selectedPosition ?? mapCenter}
         onPick={onSelect}
         selectedPosition={selectedPosition}
-        zoom={selectedPosition ? 15 : 2}
+        zoom={selectedPosition ? 15 : 13}
       />
       {locationError && (
         <p aria-live="polite" className="text-sm text-rose-700" role="alert">

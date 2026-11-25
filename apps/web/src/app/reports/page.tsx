@@ -298,44 +298,42 @@ export default async function ReportsPage({
         </div>
       )}
 
-      {result.totalPages > 1 && (
-        <nav
-          aria-label="Pagination des signalements"
-          className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5"
-        >
-          <p className="text-sm text-slate-600">
-            Page {result.page} sur {result.totalPages}
-          </p>
-          <div className="flex gap-2">
-            {result.page > 1 ? (
-              <Link
-                className="inline-flex min-h-10 items-center border-2 border-slate-900 bg-white px-4 text-sm font-bold text-slate-900 hover:bg-slate-100"
-                href={getPageHref(result.page - 1, filters, view)}
-                rel="prev"
-              >
-                Précédent
-              </Link>
-            ) : (
-              <span className="inline-flex min-h-10 items-center border-2 border-slate-200 px-4 text-sm text-slate-400">
-                Précédent
-              </span>
-            )}
-            {result.page < result.totalPages ? (
-              <Link
-                className="inline-flex min-h-10 items-center bg-[#1F4FD8] px-4 text-sm font-bold text-white hover:bg-[#1840B0]"
-                href={getPageHref(result.page + 1, filters, view)}
-                rel="next"
-              >
-                Suivant
-              </Link>
-            ) : (
-              <span className="inline-flex min-h-10 items-center border-2 border-slate-200 px-4 text-sm text-slate-400">
-                Suivant
-              </span>
-            )}
-          </div>
-        </nav>
-      )}
+      <nav
+        aria-label="Pagination des signalements"
+        className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5"
+      >
+        <p aria-live="polite" className="text-sm text-slate-600">
+          Page {result.page} sur {result.totalPages}
+        </p>
+        <div className="flex gap-2">
+          {result.page > 1 ? (
+            <Link
+              className="inline-flex min-h-10 items-center border-2 border-slate-900 bg-white px-4 text-sm font-bold text-slate-900 hover:bg-slate-100"
+              href={getPageHref(result.page - 1, filters, view)}
+              rel="prev"
+            >
+              Précédent
+            </Link>
+          ) : (
+            <span aria-disabled="true" className="inline-flex min-h-10 items-center border-2 border-slate-200 px-4 text-sm text-slate-400">
+              Précédent
+            </span>
+          )}
+          {result.page < result.totalPages ? (
+            <Link
+              className="inline-flex min-h-10 items-center bg-[#1F4FD8] px-4 text-sm font-bold text-white hover:bg-[#1840B0]"
+              href={getPageHref(result.page + 1, filters, view)}
+              rel="next"
+            >
+              Suivant
+            </Link>
+          ) : (
+            <span aria-disabled="true" className="inline-flex min-h-10 items-center border-2 border-slate-200 px-4 text-sm text-slate-400">
+              Suivant
+            </span>
+          )}
+        </div>
+      </nav>
     </section>
   );
 }

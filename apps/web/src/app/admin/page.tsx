@@ -134,7 +134,6 @@ function AssignmentList({
             Affectez un responsable et mettez à jour le statut de chaque signalement.
           </p>
         </div>
-        <Badge variant="neutral">Page {page} / {totalPages}</Badge>
       </div>
 
       {reports.length === 0 ? (
@@ -204,31 +203,40 @@ function AssignmentList({
         </div>
       )}
 
-      {totalPages > 1 && (
-        <nav
-          aria-label="Pages des signalements à affecter"
-          className="flex items-center justify-between gap-3 border-t border-slate-200 px-4 py-3"
-        >
-          {page > 1 ? (
-            <Link
-              className="font-semibold text-[#1F4FD8] hover:underline"
-              href={getPageHref(page - 1)}
-              rel="prev"
-            >
-              Page précédente
-            </Link>
-          ) : <span />}
-          {page < totalPages ? (
-            <Link
-              className="font-semibold text-[#1F4FD8] hover:underline"
-              href={getPageHref(page + 1)}
-              rel="next"
-            >
-              Page suivante
-            </Link>
-          ) : <span />}
-        </nav>
-      )}
+      <nav
+        aria-label="Pages des signalements à affecter"
+        className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3"
+      >
+        {page > 1 ? (
+          <Link
+            className="font-semibold text-[#1F4FD8] hover:underline"
+            href={getPageHref(page - 1)}
+            rel="prev"
+          >
+            Page précédente
+          </Link>
+        ) : (
+          <span aria-disabled="true" className="text-slate-400">
+            Page précédente
+          </span>
+        )}
+        <span aria-live="polite" className="text-sm text-slate-600">
+          Page {page} sur {totalPages}
+        </span>
+        {page < totalPages ? (
+          <Link
+            className="font-semibold text-[#1F4FD8] hover:underline"
+            href={getPageHref(page + 1)}
+            rel="next"
+          >
+            Page suivante
+          </Link>
+        ) : (
+          <span aria-disabled="true" className="text-slate-400">
+            Page suivante
+          </span>
+        )}
+      </nav>
     </Card>
   );
 }
@@ -288,7 +296,7 @@ export default async function AdminPage({
 
       <Statistics stats={stats} totalReports={reports.totalCount} />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="space-y-5">
         <AssignmentList
           page={reports.page}
           reports={reports.reports}

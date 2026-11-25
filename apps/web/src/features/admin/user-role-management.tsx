@@ -1,7 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import type { AdminUserSummaryDto } from "@localimpact/application";
-import { Badge, Card } from "@localimpact/ui";
+import { Badge, Button, Card } from "@localimpact/ui";
 
 import { ChangeUserRoleForm } from "./change-user-role-form";
+
+const pageSize = 10;
 
 export function UserRoleManagement({
   users,
@@ -10,6 +15,12 @@ export function UserRoleManagement({
   readonly users: readonly AdminUserSummaryDto[];
   readonly currentAdminId: string;
 }) {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(users.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const firstUserIndex = (currentPage - 1) * pageSize;
+  const visibleUsers = users.slice(firstUserIndex, firstUserIndex + pageSize);
+
   return (
     <section aria-labelledby="user-roles-title" className="space-y-3">
       <div>
@@ -37,7 +48,7 @@ export function UserRoleManagement({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {users.map((user) => (
+                {visibleUsers.map((user) => (
                   <tr key={user.id}>
                     <td className="px-4 py-4 align-top">
                       <p className="font-bold text-slate-950">
@@ -72,6 +83,35 @@ export function UserRoleManagement({
               </tbody>
             </table>
           </div>
+        )}
+        {users.length > 0 && (
+          <nav
+            aria-label="Pagination des comptes"
+            className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3"
+          >
+            <p aria-live="polite" className="text-sm text-slate-600">
+              Comptes {firstUserIndex + 1}–{Math.min(firstUserIndex + pageSize, users.length)}
+              {" "}sur {users.length} · Page {currentPage} sur {totalPages}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                disabled={currentPage === 1}
+                onClick={() => setPage(currentPage - 1)}
+                size="sm"
+                variant="secondary"
+              >
+                Précédent
+              </Button>
+              <Button
+                disabled={currentPage === totalPages}
+                onClick={() => setPage(currentPage + 1)}
+                size="sm"
+                variant="secondary"
+              >
+                Suivant
+              </Button>
+            </div>
+          </nav>
         )}
       </Card>
     </section>
