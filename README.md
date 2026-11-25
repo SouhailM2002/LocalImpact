@@ -4,7 +4,7 @@ LocalImpact is a full-stack issue-reporting and resolution-tracking platform for
 
 ## Project Status
 
-The pnpm/Turborepo workspace, responsive Next.js shell, server-side authentication integration, report creation, and report exploration are in place. Report creation checks for textually similar reports in the same category and location and asks the user to confirm before proceeding. Remaining application workflows and administrative features are still to be implemented.
+The pnpm/Turborepo workspace, responsive Next.js shell, server-side authentication integration, report creation, and report exploration are in place. Report creation checks for textually similar reports in the same category and location and asks the user to confirm before proceeding. The admin dashboard provides report statistics and report assignment; Responsable status management and remaining support/comment actions are still to be implemented.
 
 ## Technology
 

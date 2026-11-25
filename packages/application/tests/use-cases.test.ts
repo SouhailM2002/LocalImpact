@@ -24,6 +24,7 @@ import {
   ChangeSignalementStatus,
   CreateSignalement,
   GetDashboardStats,
+  GetResponsables,
   GetSignalementById,
   GetSignalementDetail,
   GetSignalements,
@@ -203,6 +204,12 @@ class FakeUserRepository implements UserRepository {
       const user = this.items.get(id);
       return user === undefined ? [] : [{ id, displayName: user.displayName }];
     }));
+  }
+
+  findDisplayNamesByRole(role: UserRecord["role"]) {
+    return Promise.resolve([...this.items.values()]
+      .filter((user) => user.role === role)
+      .map(({ id, displayName }) => ({ id, displayName })));
   }
 
   create(user: NewUserRecord): Promise<UserRecord> {
@@ -710,6 +717,19 @@ describe("Application use cases", () => {
         countsByCategory: [{ category: "Plomberie", count: 1 }],
         averageResolutionTimeMs: 1234,
       });
+  });
+
+  it("limits responsable account listings to administrators", async () => {
+    users.items.set("responsable-1", makeUser("responsable-1", "RESPONSABLE"));
+    users.items.set("user-1", makeUser("user-1", "USER"));
+    const getResponsables = new GetResponsables(users);
+
+    await expect(getResponsables.execute({ userId: "user-1", role: "USER" }))
+      .rejects.toBeInstanceOf(UnauthorizedDomainOperationError);
+    await expect(getResponsables.execute({ userId: "admin-1", role: "ADMIN" }))
+      .resolves.toEqual([
+        { id: "responsable-1", displayName: "responsable-1" },
+      ]);
   });
 
   it("registers standard users with a hashed password and prevents role escalation", async () => {

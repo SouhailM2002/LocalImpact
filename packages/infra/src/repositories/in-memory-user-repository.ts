@@ -3,6 +3,7 @@ import type {
   UserDisplayName,
   UserRepository,
   UserRecord,
+  UserRole,
 } from "@localimpact/application";
 import { InMemoryRepositoryError } from "../errors/in-memory-repository-error.js";
 
@@ -43,6 +44,18 @@ export class InMemoryUserRepository implements UserRepository {
         ? []
         : [{ id: user.id, displayName: user.displayName }];
     });
+
+    return Promise.resolve(Object.freeze(result));
+  }
+
+  findDisplayNamesByRole(role: UserRole): Promise<readonly UserDisplayName[]> {
+    const result = [...this.usersById.values()]
+      .filter((user) => user.role === role)
+      .map(({ id, displayName }) => ({ id, displayName }))
+      .sort((left, right) => (
+        left.displayName.localeCompare(right.displayName) ||
+        left.id.localeCompare(right.id)
+      ));
 
     return Promise.resolve(Object.freeze(result));
   }

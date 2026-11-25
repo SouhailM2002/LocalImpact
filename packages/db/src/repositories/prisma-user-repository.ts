@@ -4,6 +4,7 @@ import type {
   UserDisplayName,
   UserRecord,
   UserRepository,
+  UserRole,
 } from "@localimpact/application";
 import { UserAlreadyExistsError } from "@localimpact/application";
 import { getPrismaExecutor } from "../prisma-transaction-context.js";
@@ -68,6 +69,16 @@ export class PrismaUserRepository implements UserRepository {
     const users = await getPrismaExecutor(this.prisma).user.findMany({
       where: { id: { in: [...userIds] } },
       select: { id: true, name: true },
+    });
+
+    return users.map(({ id, name }) => ({ id, displayName: name }));
+  }
+
+  async findDisplayNamesByRole(role: UserRole): Promise<readonly UserDisplayName[]> {
+    const users = await getPrismaExecutor(this.prisma).user.findMany({
+      where: { role },
+      select: { id: true, name: true },
+      orderBy: [{ name: "asc" }, { id: "asc" }],
     });
 
     return users.map(({ id, name }) => ({ id, displayName: name }));

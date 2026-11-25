@@ -240,6 +240,34 @@ describe("InMemoryUserRepository", () => {
     await expect(repository.findDisplayNames(["user-1", "missing"]))
       .resolves.toEqual([{ id: "user-1", displayName: "User One" }]);
   });
+
+  it("lists only display names for users with the requested role", async () => {
+    const repository = new InMemoryUserRepository();
+    await repository.create(makeUser({
+      id: "responsable-2",
+      displayName: "Zoé",
+      email: "zoe@example.test",
+      role: "RESPONSABLE",
+    }));
+    await repository.create(makeUser({
+      id: "responsable-1",
+      displayName: "Alex",
+      email: "alex@example.test",
+      role: "RESPONSABLE",
+    }));
+    await repository.create(makeUser({
+      id: "user-1",
+      displayName: "User One",
+      email: "user@example.test",
+      role: "USER",
+    }));
+
+    await expect(repository.findDisplayNamesByRole("RESPONSABLE"))
+      .resolves.toEqual([
+        { id: "responsable-1", displayName: "Alex" },
+        { id: "responsable-2", displayName: "Zoé" },
+      ]);
+  });
 });
 
 describe("InMemoryCommentaireRepository", () => {

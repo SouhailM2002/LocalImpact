@@ -61,6 +61,7 @@ export type {
 export { CreateSignalement } from "./use-cases/create-signalement.js";
 export type { CreateSignalementInput } from "./use-cases/create-signalement.js";
 export { GetDashboardStats } from "./use-cases/get-dashboard-stats.js";
+export { GetResponsables } from "./use-cases/get-responsables.js";
 export { GetSignalementById } from "./use-cases/get-signalement-by-id.js";
 export type { GetSignalementByIdInput } from "./use-cases/get-signalement-by-id.js";
 export { GetSignalementDetail } from "./use-cases/get-signalement-detail.js";

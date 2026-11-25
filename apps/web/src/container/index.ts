@@ -8,6 +8,7 @@ import {
   ChangeSignalementStatus,
   CreateSignalement,
   GetDashboardStats,
+  GetResponsables,
   GetSignalementById,
   GetSignalementDetail,
   GetSignalements,
@@ -74,6 +75,7 @@ export const container = Object.freeze({
     ids,
   ),
   getDashboardStats: new GetDashboardStats(persistence.signalements),
+  getResponsables: new GetResponsables(persistence.users),
   registerUser: new RegisterUser(
     persistence.users,
     passwordHasher,

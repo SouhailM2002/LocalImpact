@@ -23,7 +23,9 @@ const roleNavigation: Readonly<Record<UserRole, readonly NavigationItem[]>> = {
     { href: "/reports/new", label: "Créer un signalement", icon: "plus" },
   ],
   RESPONSABLE: [],
-  ADMIN: [],
+  ADMIN: [
+    { href: "/admin", label: "Administration", icon: "dashboard" },
+  ],
 };
 
 function NavigationList({
