@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Badge, Card } from "@localimpact/ui";
 
-import { AppIcon } from "@/components/app-icon";
+import { AuthPageShell } from "@/features/auth/auth-page-shell";
 import { AuthMessage } from "@/features/auth/auth-form-components";
 import { LoginForm } from "@/features/auth/login-form";
 import { getAuthenticatedUser } from "@/lib/auth-session";
@@ -26,30 +25,23 @@ export default async function LoginPage({
   }
 
   return (
-    <section className="mx-auto max-w-lg space-y-6">
-      <div>
-        <Badge className="mb-3" variant="info">
-          <AppIcon className="size-3.5" name="shield" />
-          Bienvenue
-        </Badge>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
-          Connectez-vous à LocalImpact
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
-          Retrouvez les signalements de votre communauté et leur suivi.
-        </p>
-      </div>
+    <AuthPageShell
+      eyebrow="Bienvenue"
+      icon="shield"
+      intro="Accédez à votre espace communautaire."
+      panelDescription="Retrouvez les signalements de votre communauté et suivez leur évolution."
+      panelHeadline={<>Signalez.<br />Mobilisez.<br />Suivez.</>}
+      title="Connectez-vous à LocalImpact"
+    >
       {params.loggedOut === "1" && (
         <AuthMessage message="Vous êtes maintenant déconnecté." role="status" />
       )}
-      <Card className="p-5 sm:p-8">
-        <LoginForm />
-      </Card>
-      <p className="text-center text-sm text-slate-500">
-        <Link className="font-medium text-teal-800 hover:underline" href="/">
+      <LoginForm />
+      <p className="mt-3 text-sm text-slate-600 sm:mt-5">
+        <Link className="font-bold text-[#1F4FD8] underline underline-offset-4 hover:text-[#1840B0]" href="/">
           Retour à l’accueil
         </Link>
       </p>
-    </section>
+    </AuthPageShell>
   );
 }

@@ -29,19 +29,18 @@ export default async function HomePage() {
   const viewer = await getAuthenticatedUser();
 
   return (
-    <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-800 via-teal-700 to-emerald-700 px-6 py-9 text-white shadow-lg shadow-teal-950/10 sm:px-9 sm:py-12 lg:px-12">
-        <div className="pointer-events-none absolute -right-16 -top-24 size-80 rounded-full border border-white/10" />
-        <div className="pointer-events-none absolute -right-4 -top-12 size-56 rounded-full border border-white/10" />
-        <div className="relative max-w-3xl">
-          <Badge className="border border-white/20 bg-white/10 text-teal-50 ring-0">
+    <div className="space-y-10">
+      <section className="relative overflow-hidden border-2 border-slate-950 bg-[#1F4FD8] px-6 py-9 text-white sm:px-9 sm:py-12 lg:px-12">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-12 hidden size-72 border-[24px] border-white/10 lg:block" />
+        <div className="relative max-w-4xl">
+          <Badge className="border-white bg-white text-[#1F4FD8]">
             <AppIcon className="size-3.5" name="sparkles" />
             Espace communautaire
           </Badge>
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+          <h1 className="mt-6 max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-5xl lg:text-7xl">
             Ensemble, améliorons notre cadre de vie.
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-teal-50/90 sm:text-base sm:leading-8">
+          <p className="mt-5 max-w-2xl text-base leading-7 text-blue-50 sm:text-lg sm:leading-8">
             Signalez les problèmes de votre campus ou de votre résidence,
             suivez leur évolution et contribuez à des solutions durables.
           </p>
@@ -49,13 +48,13 @@ export default async function HomePage() {
             {viewer === null ? (
               <>
                 <Link
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-teal-900 transition-colors hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="inline-flex min-h-11 items-center justify-center border-2 border-white bg-white px-5 text-sm font-bold text-[#1F4FD8] transition-colors hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   href="/register"
                 >
                   Créer un compte
                 </Link>
                 <Link
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/40 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="inline-flex min-h-11 items-center justify-center border-2 border-white px-5 text-sm font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   href="/login"
                 >
                   Se connecter
@@ -64,14 +63,14 @@ export default async function HomePage() {
             ) : (
               <>
                 <Link
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-teal-900 transition-colors hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="inline-flex min-h-11 items-center justify-center border-2 border-white bg-white px-5 text-sm font-bold text-[#1F4FD8] transition-colors hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   href="/reports"
                 >
                   Explorer les signalements
                 </Link>
                 {viewer.role === "USER" && (
                   <Link
-                    className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/40 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    className="inline-flex min-h-11 items-center justify-center border-2 border-white px-5 text-sm font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     href="/reports/new"
                   >
                     Créer un signalement
@@ -84,44 +83,44 @@ export default async function HomePage() {
       </section>
 
       <section aria-labelledby="getting-started-heading">
-        <div className="mb-4">
-          <p className="text-xs font-semibold tracking-[0.14em] text-teal-700 uppercase">
+        <div className="mb-5">
+          <p className="text-xs font-bold tracking-[0.2em] text-[#1F4FD8] uppercase">
             LocalImpact
           </p>
           <h2
-            className="mt-1 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl"
+            className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl"
             id="getting-started-heading"
           >
             Une communauté qui avance
           </h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-x-6 gap-y-8 md:grid-cols-3">
           {highlights.map((highlight) => (
-            <Card className="p-5 sm:p-6" key={highlight.title}>
-              <div className="flex size-11 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+            <article className="border-t-4 border-slate-950 pt-5" key={highlight.title}>
+              <div className="flex size-11 items-center justify-center bg-[#1F4FD8] text-white">
                 <AppIcon className="size-5" name={highlight.icon} />
               </div>
-              <h3 className="mt-5 text-base font-semibold text-slate-900">
+              <h3 className="mt-5 text-lg font-black text-slate-950">
                 {highlight.title}
               </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
+              <p className="mt-2 text-sm leading-6 text-slate-700">
                 {highlight.description}
               </p>
-            </Card>
+            </article>
           ))}
         </div>
       </section>
 
       <section aria-labelledby="workspace-note-heading">
-        <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <Card className="flex flex-col gap-4 border-2 border-slate-950 bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>
             <h2
-              className="text-sm font-semibold text-slate-900"
+              className="text-lg font-black text-slate-950"
               id="workspace-note-heading"
             >
               Votre espace LocalImpact
             </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <p className="mt-1 text-sm leading-6 text-slate-700">
               {viewer === null
                 ? "Créez un compte ou connectez-vous pour commencer à explorer les signalements."
                 : "Explorez les signalements de votre communauté et suivez leur évolution."}

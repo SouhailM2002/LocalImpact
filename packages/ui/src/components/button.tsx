@@ -5,16 +5,16 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const variantClasses: Readonly<Record<ButtonVariant, string>> = {
-  primary: "bg-teal-700 text-white shadow-sm hover:bg-teal-800 focus-visible:ring-teal-600",
-  secondary: "border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:ring-teal-600",
-  ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-teal-600",
-  danger: "bg-rose-700 text-white shadow-sm hover:bg-rose-800 focus-visible:ring-rose-600",
+  primary: "bg-[#1F4FD8] text-white hover:bg-[#1840B0] focus-visible:ring-[#1F4FD8]",
+  secondary: "border-2 border-slate-900 bg-white text-slate-900 hover:bg-slate-900 hover:text-white focus-visible:ring-[#1F4FD8]",
+  ghost: "text-slate-700 hover:bg-slate-100 hover:text-slate-950 focus-visible:ring-[#1F4FD8]",
+  danger: "bg-[#B42318] text-white hover:bg-red-800 focus-visible:ring-red-700",
 };
 
 const sizeClasses: Readonly<Record<ButtonSize, string>> = {
-  sm: "min-h-9 gap-2 rounded-lg px-3 text-sm",
-  md: "min-h-10 gap-2 rounded-xl px-4 text-sm",
-  lg: "min-h-12 gap-2 rounded-xl px-5 text-base",
+  sm: "min-h-9 gap-2 px-3 text-sm",
+  md: "min-h-10 gap-2 px-4 text-sm",
+  lg: "min-h-12 gap-2 px-5 text-base",
 };
 
 export function buttonClassName(
@@ -23,7 +23,7 @@ export function buttonClassName(
   className?: string,
 ): string {
   const sizeClass = size === "icon"
-    ? "size-10 rounded-xl"
+    ? "size-10"
     : sizeClasses[size];
 
   return cn(

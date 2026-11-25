@@ -31,7 +31,7 @@ export function ReportCard({
   }).format(report.createdAt);
 
   return (
-    <Card className="flex h-full flex-col p-5 transition-shadow hover:shadow-md">
+    <Card className="flex h-full flex-col border-t-4 border-t-slate-950 p-5 transition-colors hover:bg-slate-50">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           <Badge variant="neutral">{report.category}</Badge>
@@ -42,9 +42,9 @@ export function ReportCard({
         <span className="shrink-0 text-xs text-slate-500">{createdAt}</span>
       </div>
 
-      <h2 className="mt-4 text-lg font-semibold leading-6 text-slate-950">
+      <h2 className="mt-4 text-xl font-black leading-6 text-slate-950">
         <Link
-          className="rounded-sm outline-none hover:text-teal-800 focus-visible:ring-2 focus-visible:ring-teal-600"
+          className="outline-none hover:text-[#1F4FD8] focus-visible:underline focus-visible:decoration-2"
           href={`/reports/${encodeURIComponent(report.id)}`}
         >
           {report.title}

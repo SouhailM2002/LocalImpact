@@ -12,7 +12,7 @@ export default async function CreateSignalementPage() {
       <section className="mx-auto max-w-3xl space-y-6">
         <PageHeading />
         <Card className="p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-black text-slate-950">
             Connexion requise
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -28,7 +28,7 @@ export default async function CreateSignalementPage() {
       <section className="mx-auto max-w-3xl space-y-6">
         <PageHeading />
         <Card className="p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-black text-slate-950">
             Action non autorisée
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -42,7 +42,7 @@ export default async function CreateSignalementPage() {
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <PageHeading />
-      <Card className="p-5 sm:p-8">
+      <Card className="border-2 border-slate-900 p-5 sm:p-8">
         <CreateSignalementForm />
       </Card>
     </section>
@@ -56,10 +56,10 @@ function PageHeading() {
         <AppIcon className="size-3.5" name="plus" />
         Nouveau signalement
       </Badge>
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+      <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
         Décrivez le problème
       </h1>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">
         Partagez les informations nécessaires pour que votre communauté puisse
         comprendre et résoudre la situation.
       </p>

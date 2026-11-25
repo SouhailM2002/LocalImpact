@@ -46,7 +46,7 @@ export function RegisterForm() {
   return (
     <form
       action={formAction}
-      className="space-y-5"
+      className="space-y-2 sm:space-y-4"
       noValidate
       onSubmit={validateBeforeSubmit}
     >
@@ -57,7 +57,6 @@ export function RegisterForm() {
           aria-describedby={errors.name ? "name-error" : undefined}
           aria-invalid={Boolean(errors.name)}
           autoComplete="name"
-          autoFocus
           id="name"
           maxLength={80}
           name="name"
@@ -127,7 +126,7 @@ export function RegisterForm() {
       <p className="text-center text-sm text-slate-600">
         Vous avez déjà un compte ?{" "}
         <Link
-          className="font-semibold text-teal-800 underline underline-offset-4 hover:text-teal-950"
+          className="font-bold text-[#1F4FD8] underline underline-offset-4 hover:text-[#1840B0]"
           href="/login"
         >
           Se connecter

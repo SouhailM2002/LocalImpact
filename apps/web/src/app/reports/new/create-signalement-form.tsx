@@ -76,7 +76,7 @@ export function CreateSignalementForm() {
       {serverState.message && (
         <div
           aria-live="polite"
-          className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+          className="border-2 border-[#B42318] bg-red-50 px-4 py-3 text-sm text-red-900"
           role="alert"
         >
           {serverState.message}
@@ -84,7 +84,7 @@ export function CreateSignalementForm() {
       )}
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-800" htmlFor="title">
+        <label className="mb-2 block text-sm font-bold text-slate-900" htmlFor="title">
           Titre <span className="text-rose-600" aria-hidden="true">*</span>
         </label>
         <Input
@@ -101,7 +101,7 @@ export function CreateSignalementForm() {
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-800" htmlFor="description">
+        <label className="mb-2 block text-sm font-bold text-slate-900" htmlFor="description">
           Description <span className="text-rose-600" aria-hidden="true">*</span>
         </label>
         <Textarea
@@ -119,7 +119,7 @@ export function CreateSignalementForm() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-800" htmlFor="category">
+          <label className="mb-2 block text-sm font-bold text-slate-900" htmlFor="category">
             Catégorie <span className="text-rose-600" aria-hidden="true">*</span>
           </label>
           <Input
@@ -135,7 +135,7 @@ export function CreateSignalementForm() {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-800" htmlFor="location">
+          <label className="mb-2 block text-sm font-bold text-slate-900" htmlFor="location">
             Lieu <span className="text-rose-600" aria-hidden="true">*</span>
           </label>
           <Input
@@ -152,7 +152,7 @@ export function CreateSignalementForm() {
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-800" htmlFor="photo">
+        <label className="mb-2 block text-sm font-bold text-slate-900" htmlFor="photo">
           Photo <span className="font-normal text-slate-500">(facultative)</span>
         </label>
         <Input
@@ -174,7 +174,7 @@ export function CreateSignalementForm() {
         </span>
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col-reverse gap-3 border-t-2 border-slate-900 pt-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-slate-500">
           Les champs marqués d’un astérisque sont obligatoires.
         </p>

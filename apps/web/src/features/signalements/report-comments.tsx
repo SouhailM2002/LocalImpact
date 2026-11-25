@@ -15,7 +15,7 @@ export function ReportComments({
 }) {
   return (
     <section aria-labelledby="comments-title" className="space-y-3">
-      <h2 className="text-xl font-semibold text-slate-950" id="comments-title">
+      <h2 className="border-t-4 border-slate-950 pt-4 text-2xl font-black text-slate-950" id="comments-title">
         Commentaires et discussion
       </h2>
       {comments.length === 0 ? (
@@ -26,9 +26,9 @@ export function ReportComments({
         <ol className="space-y-3">
           {comments.map((comment) => (
             <li key={comment.id}>
-              <Card className="p-4 sm:p-5">
+              <Card className="border-l-4 border-l-slate-950 p-4 sm:p-5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-bold text-slate-950">
                     {comment.authorDisplayName ?? "Compte indisponible"}
                   </p>
                   <time

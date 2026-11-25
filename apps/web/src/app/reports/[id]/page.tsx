@@ -70,14 +70,14 @@ async function loadSignalementDetail(
 function SignalementUnavailable() {
   return (
     <Card className="mx-auto max-w-xl p-6 text-center sm:p-8">
-      <h1 className="text-xl font-semibold text-slate-950">
+      <h1 className="text-2xl font-black text-slate-950">
         Signalement indisponible
       </h1>
       <p className="mt-2 text-sm leading-6 text-slate-600">
         Ce signalement est introuvable ou votre compte n’y a pas accès.
       </p>
       <Link
-        className="mt-5 inline-flex min-h-10 items-center rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800"
+        className="mt-5 inline-flex min-h-10 items-center bg-[#1F4FD8] px-4 text-sm font-bold text-white hover:bg-[#1840B0]"
         href="/reports"
       >
         Retour aux signalements

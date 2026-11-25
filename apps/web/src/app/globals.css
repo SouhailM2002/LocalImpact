@@ -3,9 +3,29 @@
 
 :root {
   color-scheme: light;
+  --color-ink: #0f172a;
+  --color-signal: #1f4fd8;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
+  background: #f8fafc;
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-signal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

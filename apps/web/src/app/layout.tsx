@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 
 import { AppShell } from "../components/app-shell";
+import { RouteShell } from "../components/route-shell";
 import { getAuthenticatedUser } from "../lib/auth-session";
 import "./globals.css";
 
@@ -23,11 +25,14 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const viewer = await getAuthenticatedUser();
+  const appShell = <AppShell viewer={viewer}>{children}</AppShell>;
 
   return (
     <html lang="fr">
       <body>
-        <AppShell viewer={viewer}>{children}</AppShell>
+        <Suspense fallback={appShell}>
+          <RouteShell appShell={appShell} barePage={children} />
+        </Suspense>
       </body>
     </html>
   );

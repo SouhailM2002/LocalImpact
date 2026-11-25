@@ -16,7 +16,7 @@ export function AuthMessage({
     <div
       aria-live={isStatus ? "polite" : "assertive"}
       className={[
-        "mb-5 rounded-xl border px-4 py-3 text-sm",
+        "mb-3 border-2 px-4 py-3 text-sm sm:mb-5",
         isStatus
           ? "border-emerald-200 bg-emerald-50 text-emerald-800"
           : "border-rose-200 bg-rose-50 text-rose-800",
@@ -43,7 +43,7 @@ export function AuthField({
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-800" htmlFor={id}>
+      <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor={id}>
         {label}
       </label>
       {children}

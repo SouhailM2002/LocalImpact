@@ -44,7 +44,7 @@ export function LoginForm() {
   return (
     <form
       action={formAction}
-      className="space-y-5"
+      className="space-y-2 sm:space-y-4"
       noValidate
       onSubmit={validateBeforeSubmit}
     >
@@ -55,7 +55,6 @@ export function LoginForm() {
           aria-describedby={errors.email ? "email-error" : undefined}
           aria-invalid={Boolean(errors.email)}
           autoComplete="email"
-          autoFocus
           id="email"
           maxLength={254}
           name="email"
@@ -89,7 +88,7 @@ export function LoginForm() {
       <p className="text-center text-sm text-slate-600">
         Pas encore de compte ?{" "}
         <Link
-          className="font-semibold text-teal-800 underline underline-offset-4 hover:text-teal-950"
+          className="font-bold text-[#1F4FD8] underline underline-offset-4 hover:text-[#1840B0]"
           href="/register"
         >
           Créer un compte

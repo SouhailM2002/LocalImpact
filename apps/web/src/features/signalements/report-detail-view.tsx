@@ -49,7 +49,7 @@ export function ReportDetailView({
       {wasJustCreated && (
         <div
           aria-live="polite"
-          className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
+          className="flex items-center gap-2 border-2 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900"
           role="status"
         >
           <AppIcon className="size-5" name="activity" />
@@ -58,7 +58,7 @@ export function ReportDetailView({
       )}
 
       <Link
-        className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-teal-800"
+        className="inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-[#1F4FD8]"
         href="/reports"
       >
         <AppIcon className="size-4 -rotate-90" name="chevron-down" />
@@ -87,7 +87,7 @@ export function ReportDetailView({
           </div>
 
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+            <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
               {report.title}
             </h1>
             <p className="mt-2 text-sm text-slate-500">
@@ -102,7 +102,7 @@ export function ReportDetailView({
             {report.description}
           </p>
 
-          <dl className="grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-3">
+          <dl className="grid gap-4 border-t-2 border-slate-900 pt-5 sm:grid-cols-3">
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Créé par

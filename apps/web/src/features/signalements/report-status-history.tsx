@@ -29,7 +29,7 @@ export function ReportStatusHistory({
 }) {
   return (
     <section aria-labelledby="status-history-title" className="space-y-3">
-      <h2 className="text-xl font-semibold text-slate-950" id="status-history-title">
+      <h2 className="border-t-4 border-slate-950 pt-4 text-2xl font-black text-slate-950" id="status-history-title">
         Historique des statuts
       </h2>
       {history.length === 0 ? (
@@ -40,7 +40,7 @@ export function ReportStatusHistory({
         <ol className="space-y-3">
           {history.map((item) => (
             <li key={item.id}>
-              <Card className="p-4 sm:p-5">
+              <Card className="border-l-4 border-l-slate-950 p-4 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={statusVariants[item.previousStatus]}>

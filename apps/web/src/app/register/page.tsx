@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Badge, Card } from "@localimpact/ui";
 
-import { AppIcon } from "@/components/app-icon";
+import { AuthPageShell } from "@/features/auth/auth-page-shell";
 import { RegisterForm } from "@/features/auth/register-form";
 import { getAuthenticatedUser } from "@/lib/auth-session";
 
@@ -18,27 +17,20 @@ export default async function RegisterPage() {
   }
 
   return (
-    <section className="mx-auto max-w-lg space-y-6">
-      <div>
-        <Badge className="mb-3" variant="info">
-          <AppIcon className="size-3.5" name="users" />
-          Rejoindre la communauté
-        </Badge>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
-          Créez votre compte
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
-          Inscrivez-vous pour signaler un problème et suivre les améliorations.
-        </p>
-      </div>
-      <Card className="p-5 sm:p-8">
-        <RegisterForm />
-      </Card>
-      <p className="text-center text-sm text-slate-500">
-        <Link className="font-medium text-teal-800 hover:underline" href="/">
+    <AuthPageShell
+      eyebrow="Rejoindre la communauté"
+      icon="users"
+      intro="Inscrivez-vous pour participer aux améliorations locales."
+      panelDescription="Rejoignez votre communauté pour signaler les problèmes et suivre les améliorations."
+      panelHeadline={<>Votre voix.<br />Votre quartier.<br />Votre impact.</>}
+      title="Créez votre compte"
+    >
+      <RegisterForm />
+      <p className="mt-3 text-sm text-slate-600 sm:mt-5">
+        <Link className="font-bold text-[#1F4FD8] underline underline-offset-4 hover:text-[#1840B0]" href="/">
           Retour à l’accueil
         </Link>
       </p>
-    </section>
+    </AuthPageShell>
   );
 }

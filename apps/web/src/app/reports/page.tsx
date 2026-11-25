@@ -32,13 +32,13 @@ function getPageHref(
 
 function InvalidFilters() {
   return (
-    <Card className="border-amber-200 bg-amber-50 p-5" role="alert">
-      <h2 className="font-semibold text-amber-950">Filtres invalides</h2>
+    <Card className="border-2 border-amber-700 bg-amber-50 p-5" role="alert">
+      <h2 className="font-bold text-amber-950">Filtres invalides</h2>
       <p className="mt-1 text-sm leading-6 text-amber-900">
         Vérifiez les critères de recherche et le numéro de page.
       </p>
       <Link
-        className="mt-3 inline-flex text-sm font-semibold text-amber-950 underline underline-offset-4"
+        className="mt-3 inline-flex text-sm font-bold text-amber-950 underline underline-offset-4"
         href="/reports"
       >
         Réinitialiser les filtres
@@ -62,7 +62,7 @@ export default async function ReportsPage({
       <section className="mx-auto max-w-3xl space-y-6">
         <PageHeading />
         <Card className="p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-black text-slate-950">
             Connexion requise
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -111,10 +111,10 @@ export default async function ReportsPage({
     <section className="space-y-6">
       <PageHeading />
 
-      <Card className="p-4 sm:p-5">
+      <Card className="border-2 border-slate-900 p-4 sm:p-5">
         <form action="/reports" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" method="get">
           <div className="sm:col-span-2 xl:col-span-4">
-            <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor="keyword">
+            <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="keyword">
               Recherche
             </label>
             <Input
@@ -128,7 +128,7 @@ export default async function ReportsPage({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor="category">
+            <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="category">
               Catégorie
             </label>
             <Input
@@ -140,7 +140,7 @@ export default async function ReportsPage({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor="location">
+            <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="location">
               Lieu
             </label>
             <Input
@@ -152,11 +152,11 @@ export default async function ReportsPage({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor="status">
+            <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="status">
               Statut
             </label>
             <select
-              className="min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15"
+              className="min-h-11 w-full border-2 border-slate-900 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1F4FD8]"
               defaultValue={filters.status ?? ""}
               id="status"
               name="status"
@@ -174,7 +174,7 @@ export default async function ReportsPage({
               Appliquer
             </Button>
             <Link
-              className="inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+              className="inline-flex min-h-10 items-center px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950"
               href="/reports"
             >
               Effacer
@@ -189,7 +189,7 @@ export default async function ReportsPage({
         </p>
         {user.role === "USER" && (
           <Link
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+            className="inline-flex min-h-10 items-center gap-2 bg-[#1F4FD8] px-4 text-sm font-bold text-white transition-colors hover:bg-[#1840B0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1F4FD8]"
             href="/reports/new"
           >
             <AppIcon className="size-4" name="plus" />
@@ -201,14 +201,14 @@ export default async function ReportsPage({
       {result.reports.length === 0 ? (
         <Card className="px-6 py-12 text-center">
           <Badge className="mb-3" variant="neutral">Aucun résultat</Badge>
-          <h2 className="text-lg font-semibold text-slate-950">
+          <h2 className="text-xl font-black text-slate-950">
             Aucun signalement ne correspond à ces filtres
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             Modifiez vos critères ou effacez les filtres pour afficher tous les signalements.
           </p>
           <Link
-            className="mt-4 inline-flex text-sm font-semibold text-teal-800 underline underline-offset-4"
+            className="mt-4 inline-flex text-sm font-bold text-[#1F4FD8] underline underline-offset-4"
             href="/reports"
           >
             Effacer les filtres
@@ -233,27 +233,27 @@ export default async function ReportsPage({
           <div className="flex gap-2">
             {result.page > 1 ? (
               <Link
-                className="inline-flex min-h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="inline-flex min-h-10 items-center border-2 border-slate-900 bg-white px-4 text-sm font-bold text-slate-900 hover:bg-slate-100"
                 href={getPageHref(result.page - 1, filters)}
                 rel="prev"
               >
                 Précédent
               </Link>
             ) : (
-              <span className="inline-flex min-h-10 items-center rounded-xl border border-slate-100 px-4 text-sm text-slate-400">
+              <span className="inline-flex min-h-10 items-center border-2 border-slate-200 px-4 text-sm text-slate-400">
                 Précédent
               </span>
             )}
             {result.page < result.totalPages ? (
               <Link
-                className="inline-flex min-h-10 items-center rounded-xl bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800"
+                className="inline-flex min-h-10 items-center bg-[#1F4FD8] px-4 text-sm font-bold text-white hover:bg-[#1840B0]"
                 href={getPageHref(result.page + 1, filters)}
                 rel="next"
               >
                 Suivant
               </Link>
             ) : (
-              <span className="inline-flex min-h-10 items-center rounded-xl border border-slate-100 px-4 text-sm text-slate-400">
+              <span className="inline-flex min-h-10 items-center border-2 border-slate-200 px-4 text-sm text-slate-400">
                 Suivant
               </span>
             )}
@@ -271,10 +271,10 @@ function PageHeading() {
         <AppIcon className="size-3.5" name="search" />
         Explorer
       </Badge>
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+      <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
         Signalements de la communauté
       </h1>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">
         Recherchez les problèmes signalés et suivez leur prise en charge.
       </p>
     </div>

@@ -4,10 +4,10 @@ import { cn } from "../cn.js";
 export type BadgeVariant = "neutral" | "success" | "info" | "warning";
 
 const variantClasses: Readonly<Record<BadgeVariant, string>> = {
-  neutral: "bg-slate-100 text-slate-700 ring-slate-200",
-  success: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-  info: "bg-teal-50 text-teal-800 ring-teal-200",
-  warning: "bg-amber-50 text-amber-800 ring-amber-200",
+  neutral: "border border-slate-300 bg-slate-50 text-slate-800",
+  success: "border border-emerald-700 bg-emerald-50 text-emerald-900",
+  info: "border border-[#1F4FD8] bg-blue-50 text-blue-900",
+  warning: "border border-amber-700 bg-amber-50 text-amber-950",
 };
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -22,7 +22,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold tracking-wide",
         variantClasses[variant],
         className,
       )}
