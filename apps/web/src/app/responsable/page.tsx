@@ -5,7 +5,7 @@ import { Badge, Card } from "@localimpact/ui";
 
 import { container } from "@/container";
 import { getAuthenticatedUser } from "@/lib/auth-session";
-import { ChangeStatusForm } from "@/features/responsable/change-status-form";
+import { ChangeStatusForm } from "@/features/signalements/change-status-form";
 
 const pageSize = 12;
 

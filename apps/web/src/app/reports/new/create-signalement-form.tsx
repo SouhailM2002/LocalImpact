@@ -14,6 +14,7 @@ import {
   type CreateSignalementField,
   type CreateSignalementFormState,
 } from "../../../features/signalements/create-signalement-schema";
+import { MapPinPicker } from "../../../features/signalements/map-pin-picker";
 
 const initialState: CreateSignalementFormState = {
   message: "",
@@ -41,6 +42,9 @@ export function CreateSignalementForm() {
   const [clientErrors, setClientErrors] = useState<
     Partial<Record<CreateSignalementField, string>>
   >({});
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [tracksAccessibility, setTracksAccessibility] = useState(false);
   const errors = { ...serverState.fieldErrors, ...clientErrors };
 
   function validateBeforeSubmit(event: FormEvent<HTMLFormElement>) {
@@ -56,6 +60,17 @@ export function CreateSignalementForm() {
       description: formData.get("description"),
       category: formData.get("category"),
       location: formData.get("location"),
+      latitude,
+      longitude,
+      accessibilityBarrierType: tracksAccessibility
+        ? formData.get("accessibilityBarrierType")
+        : undefined,
+      accessibilityImpact: tracksAccessibility
+        ? formData.get("accessibilityImpact")
+        : undefined,
+      accessibilityUrgency: tracksAccessibility
+        ? formData.get("accessibilityUrgency")
+        : undefined,
       photo,
     });
 
@@ -66,6 +81,27 @@ export function CreateSignalementForm() {
     }
 
     setClientErrors({});
+  }
+
+  function updateCoordinates(position: { readonly latitude: number; readonly longitude: number }) {
+    setLatitude(position.latitude.toFixed(6));
+    setLongitude(position.longitude.toFixed(6));
+    setClientErrors((current) => ({
+      ...current,
+      latitude: undefined,
+      longitude: undefined,
+    }));
+  }
+
+  function handleCoordinateChange(
+    field: "latitude" | "longitude",
+    value: string,
+  ) {
+    if (field === "latitude") {
+      setLatitude(value);
+    } else {
+      setLongitude(value);
+    }
   }
 
   return (
@@ -183,6 +219,153 @@ export function CreateSignalementForm() {
           <FieldError id="location-error" message={errors.location} />
         </div>
       </div>
+
+      <section aria-labelledby="map-location-heading" className="space-y-3 border-t-2 border-slate-900 pt-5">
+        <div>
+          <h2 className="text-lg font-black text-slate-950" id="map-location-heading">
+            Position sur la carte
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Cliquez sur la carte ou saisissez les coordonnées. Elles serviront à placer le signalement.
+          </p>
+        </div>
+        <MapPinPicker
+          onSelect={updateCoordinates}
+          selectedPosition={
+            latitude !== "" && longitude !== ""
+              ? { latitude: Number(latitude), longitude: Number(longitude) }
+              : null
+          }
+        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="latitude">
+              Latitude
+            </label>
+            <Input
+              aria-describedby={errors.latitude ? "latitude-error" : undefined}
+              aria-invalid={Boolean(errors.latitude)}
+              id="latitude"
+              max="90"
+              min="-90"
+              name="latitude"
+              onChange={(event) => handleCoordinateChange("latitude", event.currentTarget.value)}
+              required
+              step="any"
+              type="number"
+              value={latitude}
+            />
+            <FieldError id="latitude-error" message={errors.latitude} />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="longitude">
+              Longitude
+            </label>
+            <Input
+              aria-describedby={errors.longitude ? "longitude-error" : undefined}
+              aria-invalid={Boolean(errors.longitude)}
+              id="longitude"
+              max="180"
+              min="-180"
+              name="longitude"
+              onChange={(event) => handleCoordinateChange("longitude", event.currentTarget.value)}
+              required
+              step="any"
+              type="number"
+              value={longitude}
+            />
+            <FieldError id="longitude-error" message={errors.longitude} />
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="accessibility-heading" className="space-y-4 border-t-2 border-slate-900 pt-5">
+        <div>
+          <h2 className="text-lg font-black text-slate-950" id="accessibility-heading">
+            Suivi de l’accessibilité
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Ajoutez des informations structurées pour aider à prioriser les obstacles d’accessibilité.
+            Le statut de suivi reste celui du signalement.
+          </p>
+        </div>
+        <label className="flex items-start gap-3 text-sm font-semibold text-slate-800">
+          <input
+            checked={tracksAccessibility}
+            className="mt-1 size-4 accent-[#1F4FD8]"
+            onChange={(event) => setTracksAccessibility(event.currentTarget.checked)}
+            type="checkbox"
+          />
+          Ce signalement concerne un obstacle d’accessibilité
+        </label>
+        {tracksAccessibility && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="accessibilityBarrierType">
+                Type d’obstacle
+              </label>
+              <select
+                aria-describedby={errors.accessibilityBarrierType ? "accessibility-barrier-error" : undefined}
+                aria-invalid={Boolean(errors.accessibilityBarrierType)}
+                className="min-h-11 w-full border-2 border-slate-900 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1F4FD8]"
+                id="accessibilityBarrierType"
+                name="accessibilityBarrierType"
+                required
+              >
+                <option value="">Sélectionnez un obstacle</option>
+                <option value="INACCESSIBLE_ENTRY">Entrée inaccessible</option>
+                <option value="BLOCKED_PATH">Chemin obstrué</option>
+                <option value="MISSING_RAMP">Rampe manquante</option>
+                <option value="BROKEN_ELEVATOR">Ascenseur en panne</option>
+                <option value="INACCESSIBLE_RESTROOM">Toilettes inaccessibles</option>
+                <option value="MISSING_SIGNAGE">Signalétique manquante</option>
+                <option value="OTHER">Autre obstacle</option>
+              </select>
+              <FieldError id="accessibility-barrier-error" message={errors.accessibilityBarrierType} />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="accessibilityImpact">
+                Impact
+              </label>
+              <select
+                aria-describedby={errors.accessibilityImpact ? "accessibility-impact-error" : undefined}
+                aria-invalid={Boolean(errors.accessibilityImpact)}
+                className="min-h-11 w-full border-2 border-slate-900 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1F4FD8]"
+                id="accessibilityImpact"
+                name="accessibilityImpact"
+                required
+              >
+                <option value="">Sélectionnez un impact</option>
+                <option value="MOBILITY">Mobilité</option>
+                <option value="VISION">Vision</option>
+                <option value="HEARING">Audition</option>
+                <option value="COGNITIVE">Compréhension et orientation</option>
+                <option value="OTHER">Autre impact</option>
+              </select>
+              <FieldError id="accessibility-impact-error" message={errors.accessibilityImpact} />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-bold text-slate-900" htmlFor="accessibilityUrgency">
+                Urgence
+              </label>
+              <select
+                aria-describedby={errors.accessibilityUrgency ? "accessibility-urgency-error" : undefined}
+                aria-invalid={Boolean(errors.accessibilityUrgency)}
+                className="min-h-11 w-full border-2 border-slate-900 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1F4FD8]"
+                id="accessibilityUrgency"
+                name="accessibilityUrgency"
+                required
+              >
+                <option value="">Sélectionnez l’urgence</option>
+                <option value="LOW">Faible</option>
+                <option value="MEDIUM">Modérée</option>
+                <option value="HIGH">Élevée</option>
+              </select>
+              <FieldError id="accessibility-urgency-error" message={errors.accessibilityUrgency} />
+            </div>
+          </div>
+        )}
+      </section>
 
       <div>
         <label className="mb-2 block text-sm font-bold text-slate-900" htmlFor="photo">

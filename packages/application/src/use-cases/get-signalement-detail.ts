@@ -9,6 +9,7 @@ import {
 } from "../dto.js";
 import type { CommentaireRepository } from "../ports/commentaire-repository.js";
 import type { HistoriqueRepository } from "../ports/historique-repository.js";
+import type { SignalementRepository } from "../ports/signalement-repository.js";
 import type { UserRepository } from "../ports/user-repository.js";
 import type { GetSignalementById } from "./get-signalement-by-id.js";
 
@@ -23,14 +24,18 @@ export class GetSignalementDetail {
     private readonly commentaires: CommentaireRepository,
     private readonly historiques: HistoriqueRepository,
     private readonly users: UserRepository,
+    private readonly signalements: SignalementRepository,
   ) {}
 
   async execute(input: GetSignalementDetailInput): Promise<SignalementDetailDto> {
     const report = await this.getSignalementById.execute(input);
     const signalementId = SignalementId.create(input.signalementId);
-    const [comments, history] = await Promise.all([
+    const [comments, history, viewerHasSupported] = await Promise.all([
       this.commentaires.findBySignalementId(signalementId),
       this.historiques.findBySignalementId(signalementId),
+      input.actor.role === "USER"
+        ? this.signalements.hasSupported(signalementId, input.actor.userId)
+        : Promise.resolve(false),
     ]);
     const userIds = [...new Set([
       report.creatorId,
@@ -54,6 +59,7 @@ export class GetSignalementDetail {
             ? null
             : displayNames.get(report.assignedResponsableId) ?? null,
       },
+      viewerHasSupported,
       statusHistory: history
         .map((item) => ({
           ...toHistoriqueStatutDto(item),

@@ -13,6 +13,8 @@ function makeFormData(confirmPotentialDuplicates = false): FormData {
   formData.set("description", "The light in the corridor is broken.");
   formData.set("category", "Electrical");
   formData.set("location", "Building A");
+  formData.set("latitude", "36.8065");
+  formData.set("longitude", "10.1815");
   if (confirmPotentialDuplicates) {
     formData.set("confirmPotentialDuplicates", "true");
   }
@@ -60,6 +62,21 @@ describe("report creation duplicate confirmation", () => {
     )).resolves.toEqual({ ok: true, signalementId: "created-report" });
     expect(execute).toHaveBeenCalledWith(expect.objectContaining({
       confirmPotentialDuplicates: true,
+      latitude: 36.8065,
+      longitude: 10.1815,
     }));
+  });
+
+  it("rejects incomplete accessibility tracking fields before creating a report", async () => {
+    const formData = makeFormData();
+    formData.set("accessibilityBarrierType", "BLOCKED_PATH");
+    const execute = vi.fn<
+      (input: CreateSignalementInput) => Promise<Pick<SignalementDto, "id">>
+    >().mockResolvedValue({ id: "created-report" });
+
+    const result = await submitCreateSignalementForm(formData, actor, execute);
+
+    expect(result.ok).toBe(false);
+    expect(execute).not.toHaveBeenCalled();
   });
 });

@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import type { UserRole } from "@localimpact/application";
+import type { NotificationFeedDto } from "@localimpact/application";
 import { Badge, Card, Input, buttonClassName } from "@localimpact/ui";
 
+import { NotificationList } from "@/features/notifications/notification-list";
+import { DismissibleDetails } from "./dismissible-details";
 import { NavigationLinks } from "./navigation-links";
 import { logoutAction } from "../features/auth/actions";
 import { AppIcon } from "./app-icon";
@@ -75,7 +78,7 @@ function MobileNavigation({
   readonly viewer: AppViewer | null;
 }) {
   return (
-    <details className="relative lg:hidden">
+    <DismissibleDetails className="relative lg:hidden">
       <summary
         aria-label="Ouvrir la navigation"
         className={`${buttonClassName("secondary", "icon")} list-none cursor-pointer`}
@@ -90,29 +93,49 @@ function MobileNavigation({
           <NavigationLinks viewer={viewer} />
         </nav>
       </div>
-    </details>
+    </DismissibleDetails>
   );
 }
 
-function NotificationsMenu() {
+function NotificationsMenu({
+  feed,
+}: {
+  readonly feed: NotificationFeedDto;
+}) {
   return (
-    <details className="relative">
+    <DismissibleDetails className="relative">
       <summary
-        aria-label="Notifications"
+        aria-label={feed.unreadCount > 0
+          ? `Notifications, ${feed.unreadCount} non lues`
+          : "Notifications"}
         className={`${buttonClassName("ghost", "icon")} list-none cursor-pointer`}
         title="Notifications"
       >
         <AppIcon className="size-5" name="bell" />
-        <span className="absolute right-2.5 top-2.5 size-2 bg-[#1F4FD8] ring-2 ring-white" />
+        {feed.unreadCount > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+            {feed.unreadCount > 99 ? "99+" : feed.unreadCount}
+          </span>
+        )}
       </summary>
-      <div className="absolute right-0 top-12 z-50 w-72 border-2 border-slate-900 bg-white p-4 shadow-lg shadow-slate-950/10">
-        <p className="text-sm font-semibold text-slate-900">Notifications</p>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Les nouvelles notifications apparaîtront ici.
-        </p>
-        <Badge className="mt-3" variant="info">Bientôt disponible</Badge>
+      <div className="absolute right-0 top-12 z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden border-2 border-slate-900 bg-white shadow-xl shadow-slate-950/15">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-slate-900 bg-slate-50 px-4 py-3">
+          <p className="text-sm font-semibold text-slate-900">Notifications</p>
+          {feed.unreadCount > 0 && (
+            <Badge variant="info">{feed.unreadCount} non lue{feed.unreadCount === 1 ? "" : "s"}</Badge>
+          )}
+        </div>
+        <div className="max-h-96 overflow-y-auto">
+          <NotificationList notifications={feed.notifications} />
+        </div>
+        <Link
+          className="block border-t border-slate-200 px-4 py-3 text-sm font-semibold text-[#1F4FD8] hover:bg-blue-50"
+          href="/notifications"
+        >
+          Voir toutes les notifications
+        </Link>
       </div>
-    </details>
+    </DismissibleDetails>
   );
 }
 
@@ -135,7 +158,7 @@ function ProfileMenu({ viewer }: { readonly viewer: AppViewer | null }) {
     : "Mode découverte";
 
   return (
-    <details className="relative">
+    <DismissibleDetails className="relative">
       <summary
         aria-label={`Profil de ${name}`}
         className="flex min-h-10 cursor-pointer list-none items-center gap-2 border border-transparent p-1.5 text-left outline-none transition-colors hover:bg-slate-100 focus-visible:border-[#1F4FD8]"
@@ -188,16 +211,18 @@ function ProfileMenu({ viewer }: { readonly viewer: AppViewer | null }) {
           </>
         )}
       </div>
-    </details>
+    </DismissibleDetails>
   );
 }
 
 export function AppShell({
   children,
   viewer = null,
+  notificationFeed = { notifications: [], unreadCount: 0 },
 }: {
   readonly children: ReactNode;
   readonly viewer?: AppViewer | null;
+  readonly notificationFeed?: NotificationFeedDto;
 }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -236,7 +261,7 @@ export function AppShell({
                     type="search"
                   />
                 </form>
-                <NotificationsMenu />
+                {viewer && <NotificationsMenu feed={notificationFeed} />}
                 {!viewer && (
                   <nav aria-label="Compte" className="hidden items-center gap-1 sm:flex">
                     <Link

@@ -1,11 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { SignalementDetailDto } from "@localimpact/application";
+import type { SignalementDetailDto, UserRole } from "@localimpact/application";
 import { Badge, Card } from "@localimpact/ui";
 
 import { AppIcon } from "@/components/app-icon";
+import { AddCommentForm } from "./add-comment-form";
 import { ReportComments } from "./report-comments";
 import { ReportStatusHistory } from "./report-status-history";
+import { SupportReportForm } from "./support-report-form";
+import { InteractiveMap } from "./interactive-map";
+import {
+  getAccessibilityBarrierLabel,
+  getAccessibilityImpactLabel,
+  getAccessibilityUrgencyLabel,
+  reportStatusLabels,
+} from "./accessibility-labels";
 
 const statusLabels = {
   NOUVEAU: "Nouveau",
@@ -30,10 +39,12 @@ function formatDate(value: Date): string {
 export function ReportDetailView({
   detail,
   viewerId,
+  viewerRole,
   wasJustCreated,
 }: {
   readonly detail: SignalementDetailDto;
   readonly viewerId: string;
+  readonly viewerRole: UserRole;
   readonly wasJustCreated: boolean;
 }) {
   const { report } = detail;
@@ -124,13 +135,77 @@ export function ReportDetailView({
               <dd className="mt-1 text-sm font-medium text-slate-800">
                 {report.supportCount}
               </dd>
+              {viewerRole === "USER" && (
+                report.creatorId === viewerId ? (
+                  <p className="mt-2 text-sm text-slate-600">
+                    Vous ne pouvez pas soutenir votre propre signalement.
+                  </p>
+                ) : (
+                  <SupportReportForm
+                    alreadySupported={detail.viewerHasSupported}
+                    signalementId={report.id}
+                  />
+                )
+              )}
             </div>
           </dl>
         </div>
       </Card>
 
+      {report.accessibilityBarrierType !== undefined &&
+        report.accessibilityImpact !== undefined &&
+        report.accessibilityUrgency !== undefined && (
+          <section aria-labelledby="accessibility-detail-title" className="border-2 border-amber-700 bg-amber-50 p-5 sm:p-6">
+            <h2 className="text-xl font-black text-amber-950" id="accessibility-detail-title">
+              Suivi de l’accessibilité
+            </h2>
+            <dl className="mt-4 grid gap-4 sm:grid-cols-3">
+              <div>
+                <dt className="text-xs font-bold uppercase text-amber-900">Obstacle</dt>
+                <dd className="mt-1 text-sm font-semibold text-amber-950">
+                  {getAccessibilityBarrierLabel(report.accessibilityBarrierType)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-bold uppercase text-amber-900">Impact</dt>
+                <dd className="mt-1 text-sm font-semibold text-amber-950">
+                  {getAccessibilityImpactLabel(report.accessibilityImpact)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-bold uppercase text-amber-900">Urgence</dt>
+                <dd className="mt-1 text-sm font-semibold text-amber-950">
+                  {getAccessibilityUrgencyLabel(report.accessibilityUrgency)}
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-4 text-sm text-amber-950">
+              Suivi actuel : {reportStatusLabels[report.status]}
+            </p>
+          </section>
+        )}
+
+      {report.latitude !== undefined && report.longitude !== undefined && (
+        <section aria-labelledby="report-map-title" className="space-y-3">
+          <h2 className="text-xl font-black text-slate-950" id="report-map-title">
+            Position sur la carte
+          </h2>
+          <InteractiveMap
+            center={{ latitude: report.latitude, longitude: report.longitude }}
+            markers={[{
+              id: report.id,
+              title: report.title,
+              status: reportStatusLabels[report.status],
+              latitude: report.latitude,
+              longitude: report.longitude,
+            }]}
+          />
+        </section>
+      )}
+
       <ReportStatusHistory history={detail.statusHistory} />
       <ReportComments comments={detail.comments} />
+      {viewerRole === "USER" && <AddCommentForm signalementId={report.id} />}
     </article>
   );
 }

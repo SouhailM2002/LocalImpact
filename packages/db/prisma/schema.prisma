@@ -20,6 +20,34 @@ enum SignalementStatus {
   RESOLU
 }
 
+enum NotificationType {
+  REPORT_SUPPORTED
+}
+
+enum AccessibilityBarrierType {
+  INACCESSIBLE_ENTRY
+  BLOCKED_PATH
+  MISSING_RAMP
+  BROKEN_ELEVATOR
+  INACCESSIBLE_RESTROOM
+  MISSING_SIGNAGE
+  OTHER
+}
+
+enum AccessibilityImpact {
+  MOBILITY
+  VISION
+  HEARING
+  COGNITIVE
+  OTHER
+}
+
+enum AccessibilityUrgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model User {
   id            String      @id @default(cuid())
   name          String
@@ -36,6 +64,7 @@ model User {
   soutiens         Soutien[]
   historiques      Historique[]
   commentaires     Commentaire[]
+  notifications    Notification[]
   sessions         Session[]
   accounts         Account[]
 
@@ -92,6 +121,11 @@ model Signalement {
   description              String
   category                 String
   location                 String
+  latitude                 Float?
+  longitude                Float?
+  accessibilityBarrierType AccessibilityBarrierType?
+  accessibilityImpact      AccessibilityImpact?
+  accessibilityUrgency     AccessibilityUrgency?
   photoUrl                 String?
   status                   SignalementStatus  @default(NOUVEAU)
   creatorId                String
@@ -106,6 +140,7 @@ model Signalement {
   soutiens      Soutien[]
   historiques   Historique[]
   commentaires  Commentaire[]
+  notifications Notification[]
 
   @@index([title])
   @@index([category, status])
@@ -114,6 +149,7 @@ model Signalement {
   @@index([creatorId])
   @@index([responsableId, status])
   @@index([resolvedAt])
+  @@index([accessibilityUrgency, status])
 }
 
 model Soutien {
@@ -157,4 +193,20 @@ model Commentaire {
 
   @@index([signalementId, createdAt])
   @@index([authorId])
+}
+
+model Notification {
+  id              String           @id @default(cuid())
+  recipientId     String
+  signalementId   String
+  type            NotificationType
+  signalementTitle String
+  createdAt       DateTime         @default(now())
+  readAt          DateTime?
+
+  recipient  User        @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  signalement Signalement @relation(fields: [signalementId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, createdAt])
+  @@index([recipientId, readAt, createdAt])
 }

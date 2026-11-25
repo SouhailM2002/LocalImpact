@@ -2,7 +2,12 @@ import type { Commentaire } from "@localimpact/domain";
 import type { HistoriqueStatut } from "@localimpact/domain";
 import type { Signalement } from "@localimpact/domain";
 import type { SignalementActorRole } from "@localimpact/domain";
-import type { StatutValue } from "@localimpact/domain";
+import type {
+  AccessibilityBarrierType,
+  AccessibilityImpact,
+  AccessibilityUrgency,
+  StatutValue,
+} from "@localimpact/domain";
 
 export type UserRole = SignalementActorRole;
 
@@ -21,6 +26,9 @@ export interface SignalementSearchQuery {
   readonly keyword?: string;
   readonly category?: string;
   readonly location?: string;
+  readonly accessibilityOnly?: boolean;
+  readonly accessibilityImpact?: AccessibilityImpact;
+  readonly accessibilityUrgency?: AccessibilityUrgency;
   readonly status?: StatutValue;
   readonly assignedResponsableId?: string;
   readonly page?: number;
@@ -33,6 +41,11 @@ export interface SignalementDto {
   readonly description: string;
   readonly category: string;
   readonly location: string;
+  readonly latitude?: number;
+  readonly longitude?: number;
+  readonly accessibilityBarrierType?: AccessibilityBarrierType;
+  readonly accessibilityImpact?: AccessibilityImpact;
+  readonly accessibilityUrgency?: AccessibilityUrgency;
   readonly photoUrl: string | undefined;
   readonly createdAt: Date;
   readonly creatorId: string;
@@ -84,8 +97,29 @@ export interface SignalementDetailDto {
     readonly creatorDisplayName: string | null;
     readonly assignedResponsableDisplayName: string | null;
   };
+  readonly viewerHasSupported: boolean;
   readonly statusHistory: readonly HistoriqueStatutDetailDto[];
   readonly comments: readonly CommentaireDetailDto[];
+}
+
+export type NotificationType = "REPORT_SUPPORTED";
+
+export interface NotificationDto {
+  readonly id: string;
+  readonly type: NotificationType;
+  readonly signalementId: string;
+  readonly signalementTitle: string;
+  readonly createdAt: Date;
+  readonly readAt: Date | undefined;
+}
+
+export interface NewNotificationRecord extends Omit<NotificationDto, "readAt"> {
+  readonly recipientId: string;
+}
+
+export interface NotificationFeedDto {
+  readonly notifications: readonly NotificationDto[];
+  readonly unreadCount: number;
 }
 
 export interface UserRecord {
@@ -139,6 +173,17 @@ export function toSignalementDto(signalement: Signalement): SignalementDto {
     description: signalement.description,
     category: signalement.category,
     location: signalement.location,
+    ...(signalement.latitude === undefined ? {} : { latitude: signalement.latitude }),
+    ...(signalement.longitude === undefined ? {} : { longitude: signalement.longitude }),
+    ...(signalement.accessibilityBarrierType === undefined
+      ? {}
+      : { accessibilityBarrierType: signalement.accessibilityBarrierType }),
+    ...(signalement.accessibilityImpact === undefined
+      ? {}
+      : { accessibilityImpact: signalement.accessibilityImpact }),
+    ...(signalement.accessibilityUrgency === undefined
+      ? {}
+      : { accessibilityUrgency: signalement.accessibilityUrgency }),
     photoUrl: signalement.photoUrl,
     createdAt: signalement.createdAt,
     creatorId: signalement.creatorId,

@@ -78,6 +78,32 @@ describe("Signalement", () => {
     expect(report.assignedResponsableId).toBe("responsable-1");
   });
 
+  it("stores coordinates and complete accessibility tracking fields", () => {
+    const report = createSignalement({
+      latitude: 36.8065,
+      longitude: 10.1815,
+      accessibilityBarrierType: "BLOCKED_PATH",
+      accessibilityImpact: "MOBILITY",
+      accessibilityUrgency: "HIGH",
+    });
+
+    expect(report).toMatchObject({
+      latitude: 36.8065,
+      longitude: 10.1815,
+      accessibilityBarrierType: "BLOCKED_PATH",
+      accessibilityImpact: "MOBILITY",
+      accessibilityUrgency: "HIGH",
+    });
+  });
+
+  it("rejects incomplete or out-of-range coordinates and accessibility metadata", () => {
+    expect(() => createSignalement({ latitude: 36.8 })).toThrow(InvalidSignalementError);
+    expect(() => createSignalement({ latitude: 91, longitude: 10 })).toThrow(InvalidSignalementError);
+    expect(() => createSignalement({
+      accessibilityBarrierType: "BLOCKED_PATH",
+    })).toThrow(InvalidSignalementError);
+  });
+
   it("does not allow a user to support the same report twice", () => {
     const report = createSignalement();
 

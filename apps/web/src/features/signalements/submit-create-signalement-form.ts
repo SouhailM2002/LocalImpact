@@ -43,6 +43,10 @@ function optionalPhoto(value: FormDataEntryValue | null): unknown {
   return value;
 }
 
+function optionalField(value: FormDataEntryValue | null): unknown {
+  return value === null || value === "" ? undefined : value;
+}
+
 function isSupportedImage(contentType: string, content: Uint8Array): boolean {
   if (contentType === "image/jpeg") {
     return content[0] === 0xff && content[1] === 0xd8 && content[2] === 0xff;
@@ -92,6 +96,11 @@ export async function submitCreateSignalementForm(
     description: formData.get("description"),
     category: formData.get("category"),
     location: formData.get("location"),
+    latitude: optionalField(formData.get("latitude")) ?? "",
+    longitude: optionalField(formData.get("longitude")) ?? "",
+    accessibilityBarrierType: optionalField(formData.get("accessibilityBarrierType")),
+    accessibilityImpact: optionalField(formData.get("accessibilityImpact")),
+    accessibilityUrgency: optionalField(formData.get("accessibilityUrgency")),
     photo: optionalPhoto(formData.get("photo")),
   });
 

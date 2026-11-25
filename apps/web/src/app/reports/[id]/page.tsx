@@ -42,6 +42,7 @@ export default async function SignalementDetailPage({
     <ReportDetailView
       detail={detail}
       viewerId={user.id}
+      viewerRole={user.role}
       wasJustCreated={query.created === "1"}
     />
   );

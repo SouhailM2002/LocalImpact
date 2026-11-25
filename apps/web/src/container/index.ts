@@ -9,12 +9,14 @@ import {
   ChangeUserRole,
   CreateSignalement,
   GetDashboardStats,
+  GetNotificationsForUser,
   GetResponsables,
   GetUsersForAdmin,
   GetSignalementById,
   GetSignalementDetail,
   GetSignalements,
   RegisterUser,
+  MarkNotificationAsRead,
   SupportSignalement,
 } from "@localimpact/application";
 import type { Clock, IdGenerator } from "@localimpact/application";
@@ -57,8 +59,17 @@ export const container = Object.freeze({
     persistence.commentaires,
     persistence.historiques,
     persistence.users,
+    persistence.signalements,
   ),
-  supportSignalement: new SupportSignalement(persistence.signalements),
+  supportSignalement: new SupportSignalement(
+    persistence.signalements,
+    persistence.notifications,
+    clock,
+    ids,
+    persistence.transactions,
+  ),
+  getNotificationsForUser: new GetNotificationsForUser(persistence.notifications),
+  markNotificationAsRead: new MarkNotificationAsRead(persistence.notifications, clock),
   assignResponsable: new AssignResponsable(
     persistence.signalements,
     persistence.users,

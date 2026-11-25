@@ -6,7 +6,10 @@ import { container } from "@/container";
 import { AppIcon } from "@/components/app-icon";
 import { getAuthenticatedUser } from "@/lib/auth-session";
 import { ReportCard } from "@/features/signalements/report-card";
+import { InteractiveMap } from "@/features/signalements/interactive-map";
+import type { ReportMapMarker } from "@/features/signalements/map-types";
 import { reportExplorationSchema } from "@/features/signalements/report-exploration-schema";
+import { reportStatusLabels } from "@/features/signalements/accessibility-labels";
 
 const pageSize = 12;
 
@@ -20,6 +23,7 @@ function getPageHref(
     readonly location?: string;
     readonly status?: string;
   },
+  view: "list" | "map",
 ): string {
   const params = new URLSearchParams();
   if (filters.keyword !== undefined) params.set("keyword", filters.keyword);
@@ -27,6 +31,7 @@ function getPageHref(
   if (filters.location !== undefined) params.set("location", filters.location);
   if (filters.status !== undefined) params.set("status", filters.status);
   params.set("page", String(page));
+  if (view === "map") params.set("view", "map");
   return `/reports?${params.toString()}`;
 }
 
@@ -91,6 +96,7 @@ export default async function ReportsPage({
   }
 
   const filters = parsedFilters.data;
+  const view = params.view === "map" ? "map" : "list";
   const result = await container.getSignalements.execute({
     actor: { userId: user.id, role: user.role },
     query: {
@@ -104,8 +110,20 @@ export default async function ReportsPage({
   });
 
   if (result.page !== filters.page) {
-    redirect(getPageHref(result.page, filters));
+    redirect(getPageHref(result.page, filters, view));
   }
+
+  const mapMarkers: ReportMapMarker[] = result.reports.flatMap((report) => (
+    report.latitude === undefined || report.longitude === undefined
+      ? []
+      : [{
+          id: report.id,
+          title: report.title,
+          status: reportStatusLabels[report.status],
+          latitude: report.latitude,
+          longitude: report.longitude,
+        }]
+  ));
 
   return (
     <section className="space-y-6">
@@ -198,6 +216,31 @@ export default async function ReportsPage({
         )}
       </div>
 
+      <nav aria-label="Affichage des signalements" className="flex gap-2">
+        <Link
+          aria-current={view === "list" ? "page" : undefined}
+          className={`inline-flex min-h-10 items-center border-2 px-4 text-sm font-bold ${
+            view === "list"
+              ? "border-slate-950 bg-slate-950 text-white"
+              : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+          }`}
+          href={getPageHref(result.page, filters, "list")}
+        >
+          Liste
+        </Link>
+        <Link
+          aria-current={view === "map" ? "page" : undefined}
+          className={`inline-flex min-h-10 items-center border-2 px-4 text-sm font-bold ${
+            view === "map"
+              ? "border-slate-950 bg-slate-950 text-white"
+              : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+          }`}
+          href={getPageHref(result.page, filters, "map")}
+        >
+          Carte
+        </Link>
+      </nav>
+
       {result.reports.length === 0 ? (
         <Card className="px-6 py-12 text-center">
           <Badge className="mb-3" variant="neutral">Aucun résultat</Badge>
@@ -214,6 +257,39 @@ export default async function ReportsPage({
             Effacer les filtres
           </Link>
         </Card>
+      ) : view === "map" ? (
+        mapMarkers.length === 0 ? (
+          <Card className="p-6 text-center">
+            <h2 className="text-xl font-black text-slate-950">
+              Aucun point géolocalisé sur cette page
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Les signalements créés avant l’ajout de la carte n’ont pas de coordonnées.
+              Consultez-les en liste ou créez-en un avec un repère.
+            </p>
+            <Link
+              className="mt-4 inline-flex text-sm font-bold text-[#1F4FD8] underline underline-offset-4"
+              href={getPageHref(result.page, filters, "list")}
+            >
+              Revenir à la liste
+            </Link>
+          </Card>
+        ) : (
+          <Card className="space-y-3 border-2 border-slate-900 p-3 sm:p-4">
+            <p className="text-sm text-slate-600">
+              {mapMarkers.length} point{mapMarkers.length === 1 ? "" : "s"} affiché
+              {mapMarkers.length === 1 ? "" : "s"} sur {result.reports.length} signalement
+              {result.reports.length === 1 ? "" : "s"} de cette page.
+            </p>
+            <InteractiveMap
+              center={{
+                latitude: mapMarkers[0]?.latitude ?? 0,
+                longitude: mapMarkers[0]?.longitude ?? 0,
+              }}
+              markers={mapMarkers}
+            />
+          </Card>
+        )
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {result.reports.map((report) => (
@@ -234,7 +310,7 @@ export default async function ReportsPage({
             {result.page > 1 ? (
               <Link
                 className="inline-flex min-h-10 items-center border-2 border-slate-900 bg-white px-4 text-sm font-bold text-slate-900 hover:bg-slate-100"
-                href={getPageHref(result.page - 1, filters)}
+                href={getPageHref(result.page - 1, filters, view)}
                 rel="prev"
               >
                 Précédent
@@ -247,7 +323,7 @@ export default async function ReportsPage({
             {result.page < result.totalPages ? (
               <Link
                 className="inline-flex min-h-10 items-center bg-[#1F4FD8] px-4 text-sm font-bold text-white hover:bg-[#1840B0]"
-                href={getPageHref(result.page + 1, filters)}
+                href={getPageHref(result.page + 1, filters, view)}
                 rel="next"
               >
                 Suivant

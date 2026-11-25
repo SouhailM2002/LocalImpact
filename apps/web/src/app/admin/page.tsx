@@ -9,6 +9,7 @@ import { Badge, Card } from "@localimpact/ui";
 
 import { AssignResponsableForm } from "@/features/admin/assign-responsable-form";
 import { UserRoleManagement } from "@/features/admin/user-role-management";
+import { ChangeStatusForm } from "@/features/signalements/change-status-form";
 import { container } from "@/container";
 import { getAuthenticatedUser } from "@/lib/auth-session";
 
@@ -128,9 +129,9 @@ function AssignmentList({
     <Card className="overflow-hidden border-2 border-slate-900">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-900 p-4 sm:p-5">
         <div>
-          <h2 className="text-lg font-black text-slate-950">Affectation des responsables</h2>
+          <h2 className="text-lg font-black text-slate-950">Gestion des signalements</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Affectez chaque signalement à un membre de l’équipe.
+            Affectez un responsable et mettez à jour le statut de chaque signalement.
           </p>
         </div>
         <Badge variant="neutral">Page {page} / {totalPages}</Badge>
@@ -146,12 +147,13 @@ function AssignmentList({
               après la création d’un compte Responsable.
             </p>
           )}
-          <table className="w-full min-w-[760px] border-collapse text-left">
+          <table className="w-full min-w-[1080px] border-collapse text-left">
             <thead className="bg-slate-100 text-xs font-bold uppercase tracking-wide text-slate-600">
               <tr>
                 <th className="px-4 py-3" scope="col">Signalement</th>
                 <th className="px-4 py-3" scope="col">Statut</th>
                 <th className="px-4 py-3" scope="col">Responsable</th>
+                <th className="px-4 py-3" scope="col">Avancement</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -188,6 +190,12 @@ function AssignmentList({
                     ) : (
                       <span className="text-sm text-slate-500">Indisponible</span>
                     )}
+                  </td>
+                  <td className="px-4 py-4 align-top">
+                    <ChangeStatusForm
+                      currentStatus={report.status}
+                      signalementId={report.id}
+                    />
                   </td>
                 </tr>
               ))}
@@ -267,7 +275,7 @@ export default async function AdminPage({
             Tableau de bord
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700">
-            Suivez l’activité et répartissez les signalements entre les responsables.
+            Suivez l’activité, gérez l’avancement et répartissez le travail entre responsables.
           </p>
         </div>
         <Link

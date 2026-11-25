@@ -1,4 +1,15 @@
-import { Signalement, SignalementId } from "@localimpact/domain";
+import {
+  ACCESSIBILITY_BARRIER_TYPES,
+  ACCESSIBILITY_IMPACTS,
+  ACCESSIBILITY_URGENCIES,
+  Signalement,
+  SignalementId,
+} from "@localimpact/domain";
+import type {
+  AccessibilityBarrierType,
+  AccessibilityImpact,
+  AccessibilityUrgency,
+} from "@localimpact/domain";
 import { UnauthorizedDomainOperationError } from "@localimpact/domain";
 import { ApplicationValidationError } from "../errors/application-error.js";
 import { PotentialDuplicateSignalementsError } from "../errors/application-error.js";
@@ -17,6 +28,11 @@ export interface CreateSignalementInput {
   readonly description: string;
   readonly category: string;
   readonly location: string;
+  readonly latitude: number;
+  readonly longitude: number;
+  readonly accessibilityBarrierType?: AccessibilityBarrierType;
+  readonly accessibilityImpact?: AccessibilityImpact;
+  readonly accessibilityUrgency?: AccessibilityUrgency;
   readonly photo?: PhotoUpload;
   readonly confirmPotentialDuplicates?: boolean;
 }
@@ -40,6 +56,61 @@ export class CreateSignalement {
     const description = requireNonBlank(input.description, "description");
     const category = requireNonBlank(input.category, "category");
     const location = requireNonBlank(input.location, "location");
+    if (
+      !Number.isFinite(input.latitude) ||
+      input.latitude < -90 ||
+      input.latitude > 90
+    ) {
+      throw new ApplicationValidationError("latitude", "Saisissez une latitude valide.");
+    }
+    if (
+      !Number.isFinite(input.longitude) ||
+      input.longitude < -180 ||
+      input.longitude > 180
+    ) {
+      throw new ApplicationValidationError("longitude", "Saisissez une longitude valide.");
+    }
+    const accessibilityFields = [
+      input.accessibilityBarrierType,
+      input.accessibilityImpact,
+      input.accessibilityUrgency,
+    ];
+    const accessibilityFieldCount = accessibilityFields.filter(
+      (value) => value !== undefined,
+    ).length;
+    if (accessibilityFieldCount !== 0 && accessibilityFieldCount !== 3) {
+      throw new ApplicationValidationError(
+        "accessibility",
+        "Renseignez le type d’obstacle, l’impact et l’urgence ensemble.",
+      );
+    }
+    if (
+      input.accessibilityBarrierType !== undefined &&
+      !ACCESSIBILITY_BARRIER_TYPES.includes(input.accessibilityBarrierType)
+    ) {
+      throw new ApplicationValidationError(
+        "accessibilityBarrierType",
+        "Sélectionnez un type d’obstacle valide.",
+      );
+    }
+    if (
+      input.accessibilityImpact !== undefined &&
+      !ACCESSIBILITY_IMPACTS.includes(input.accessibilityImpact)
+    ) {
+      throw new ApplicationValidationError(
+        "accessibilityImpact",
+        "Sélectionnez un impact valide.",
+      );
+    }
+    if (
+      input.accessibilityUrgency !== undefined &&
+      !ACCESSIBILITY_URGENCIES.includes(input.accessibilityUrgency)
+    ) {
+      throw new ApplicationValidationError(
+        "accessibilityUrgency",
+        "Sélectionnez un niveau d’urgence valide.",
+      );
+    }
     if (input.photo !== undefined) {
       requireNonBlank(input.photo.fileName, "photo.fileName");
       requireNonBlank(input.photo.contentType, "photo.contentType");
@@ -70,6 +141,17 @@ export class CreateSignalement {
       description,
       category,
       location,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      ...(input.accessibilityBarrierType === undefined
+        ? {}
+        : { accessibilityBarrierType: input.accessibilityBarrierType }),
+      ...(input.accessibilityImpact === undefined
+        ? {}
+        : { accessibilityImpact: input.accessibilityImpact }),
+      ...(input.accessibilityUrgency === undefined
+        ? {}
+        : { accessibilityUrgency: input.accessibilityUrgency }),
       photoUrl,
       createdAt: this.clock.now(),
       creatorId,

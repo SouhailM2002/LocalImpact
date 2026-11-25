@@ -14,6 +14,7 @@ export interface SignalementRepository {
    * Returns null if the user has already supported this report.
    */
   addSupportIfAbsent(signalementId: SignalementId, userId: string): Promise<number | null>;
+  hasSupported(signalementId: SignalementId, userId: string): Promise<boolean>;
 
   countByStatus(): Promise<Readonly<Record<StatutValue, number>>>;
   countByCategory(): Promise<readonly CategoryReportCount[]>;

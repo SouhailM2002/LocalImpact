@@ -1,3 +1,13 @@
+export {
+  ACCESSIBILITY_BARRIER_TYPES,
+  ACCESSIBILITY_IMPACTS,
+  ACCESSIBILITY_URGENCIES,
+} from "./accessibility.js";
+export type {
+  AccessibilityBarrierType,
+  AccessibilityImpact,
+  AccessibilityUrgency,
+} from "./accessibility.js";
 export { Commentaire } from "./entities/commentaire.js";
 export type { CreateCommentaireInput } from "./entities/commentaire.js";
 export { HistoriqueStatut } from "./entities/historique-statut.js";

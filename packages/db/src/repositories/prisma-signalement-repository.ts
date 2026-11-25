@@ -28,6 +28,11 @@ function toDomainSignalement(row: SignalementWithSupportCount): Signalement {
     description: row.description,
     category: row.category,
     location: row.location,
+    latitude: row.latitude ?? undefined,
+    longitude: row.longitude ?? undefined,
+    accessibilityBarrierType: row.accessibilityBarrierType ?? undefined,
+    accessibilityImpact: row.accessibilityImpact ?? undefined,
+    accessibilityUrgency: row.accessibilityUrgency ?? undefined,
     photoUrl: row.photoUrl ?? undefined,
     createdAt: row.createdAt,
     creatorId: row.creatorId,
@@ -51,6 +56,15 @@ function buildSignalementWhere(query: SignalementSearchQuery): Prisma.Signalemen
   }
   if (query.location !== undefined) {
     where.location = { contains: query.location, mode: "insensitive" };
+  }
+  if (query.accessibilityOnly === true) {
+    where.accessibilityBarrierType = { not: null };
+  }
+  if (query.accessibilityImpact !== undefined) {
+    where.accessibilityImpact = query.accessibilityImpact;
+  }
+  if (query.accessibilityUrgency !== undefined) {
+    where.accessibilityUrgency = query.accessibilityUrgency;
   }
   if (query.status !== undefined) {
     where.status = query.status;
@@ -76,6 +90,11 @@ export class PrismaSignalementRepository implements SignalementRepository {
         description: signalement.description,
         category: signalement.category,
         location: signalement.location,
+        latitude: signalement.latitude ?? null,
+        longitude: signalement.longitude ?? null,
+        accessibilityBarrierType: signalement.accessibilityBarrierType ?? null,
+        accessibilityImpact: signalement.accessibilityImpact ?? null,
+        accessibilityUrgency: signalement.accessibilityUrgency ?? null,
         photoUrl: signalement.photoUrl ?? null,
         status: signalement.status.value,
         creatorId: signalement.creatorId,
@@ -175,6 +194,20 @@ export class PrismaSignalementRepository implements SignalementRepository {
     }
 
     return db.soutien.count({ where: { signalementId: signalementId.value } });
+  }
+
+  async hasSupported(signalementId: SignalementId, userId: string): Promise<boolean> {
+    const support = await getPrismaExecutor(this.prisma).soutien.findUnique({
+      where: {
+        userId_signalementId: {
+          userId,
+          signalementId: signalementId.value,
+        },
+      },
+      select: { id: true },
+    });
+
+    return support !== null;
   }
 
   async countByStatus(): Promise<Readonly<Record<StatutValue, number>>> {

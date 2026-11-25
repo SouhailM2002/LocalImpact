@@ -16,6 +16,7 @@ interface NavigationItem {
 const sharedNavigation: readonly NavigationItem[] = [
   { href: "/", label: "Tableau de bord", icon: "dashboard" },
   { href: "/reports", label: "Explorer les signalements", icon: "search" },
+  { href: "/accessibility", label: "Suivi de l’accessibilité", icon: "activity" },
 ];
 
 const roleNavigation: Readonly<Record<UserRole, readonly NavigationItem[]>> = {

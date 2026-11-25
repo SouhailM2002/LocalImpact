@@ -38,6 +38,18 @@ function findMatchingSignalements(
       signalement.location.toLowerCase().includes(location)
     ))
     .filter((signalement) => (
+      query.accessibilityOnly !== true ||
+      signalement.accessibilityBarrierType !== undefined
+    ))
+    .filter((signalement) => (
+      query.accessibilityImpact === undefined ||
+      signalement.accessibilityImpact === query.accessibilityImpact
+    ))
+    .filter((signalement) => (
+      query.accessibilityUrgency === undefined ||
+      signalement.accessibilityUrgency === query.accessibilityUrgency
+    ))
+    .filter((signalement) => (
       query.status === undefined ||
       signalement.status.value === query.status
     ))
@@ -142,6 +154,10 @@ export class InMemorySignalementRepository implements SignalementRepository {
     users.add(userId);
 
     return Promise.resolve(supportCount);
+  }
+
+  hasSupported(signalementId: SignalementId, userId: string): Promise<boolean> {
+    return Promise.resolve(this.supports.get(signalementId.value)?.has(userId) ?? false);
   }
 
   countByStatus(): Promise<Readonly<Record<StatutValue, number>>> {

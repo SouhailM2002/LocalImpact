@@ -7,6 +7,7 @@ export type ApplicationErrorCode =
   | "USER_NOT_FOUND"
   | "LAST_ADMINISTRATOR"
   | "SELF_ROLE_CHANGE"
+  | "NOTIFICATION_NOT_FOUND"
   | "INVALID_CREDENTIALS";
 
 export abstract class ApplicationError extends Error {
@@ -61,6 +62,12 @@ export class LastAdministratorRoleChangeError extends ApplicationError {
 export class SelfRoleChangeError extends ApplicationError {
   constructor() {
     super("SELF_ROLE_CHANGE", "Vous ne pouvez pas modifier votre propre rôle.");
+  }
+}
+
+export class NotificationNotFoundError extends ApplicationError {
+  constructor(readonly notificationId: string) {
+    super("NOTIFICATION_NOT_FOUND", "Cette notification est introuvable.");
   }
 }
 

@@ -14,6 +14,8 @@ function validFormData(photo?: File): FormData {
   formData.set("description", "The light is not working on the second floor.");
   formData.set("category", "Lighting");
   formData.set("location", "Building A, floor 2");
+  formData.set("latitude", "36.8065");
+  formData.set("longitude", "10.1815");
   if (photo !== undefined) {
     formData.set("photo", photo);
   }
@@ -41,6 +43,8 @@ describe("submitCreateSignalementForm", () => {
     expect(receivedInput).toMatchObject({
       actor: userActor,
       title: "Broken hallway light",
+      latitude: 36.8065,
+      longitude: 10.1815,
       photo: {
         fileName: "hallway.png",
         contentType: "image/png",

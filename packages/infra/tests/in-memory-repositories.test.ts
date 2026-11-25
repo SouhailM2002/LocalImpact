@@ -11,6 +11,7 @@ import type { Clock, NewUserRecord } from "@localimpact/application";
 import {
   InMemoryCommentaireRepository,
   InMemoryHistoriqueRepository,
+  InMemoryNotificationRepository,
   InMemoryRepositoryError,
   InMemorySignalementRepository,
   InMemoryUserRepository,
@@ -147,11 +148,40 @@ describe("InMemorySignalementRepository", () => {
     await expect(repository.countAll(query)).resolves.toBe(1);
   });
 
+  it("filters accessibility reports by impact and urgency", async () => {
+    const accessibilityReport = Signalement.create({
+      id: SignalementId.create("accessibility"),
+      title: "Blocked accessible route",
+      description: "The accessible route is obstructed.",
+      category: "Accessibilité",
+      location: "Building A",
+      accessibilityBarrierType: "BLOCKED_PATH",
+      accessibilityImpact: "MOBILITY",
+      accessibilityUrgency: "HIGH",
+      creatorId: "user-1",
+      createdAt: createdAt,
+    });
+    await repository.create(accessibilityReport);
+    await repository.create(makeSignalement("ordinary"));
+
+    await expect(repository.findAll({
+      accessibilityOnly: true,
+      accessibilityImpact: "MOBILITY",
+      accessibilityUrgency: "HIGH",
+    })).resolves.toEqual([accessibilityReport]);
+    await expect(repository.countAll({
+      accessibilityOnly: true,
+      accessibilityUrgency: "LOW",
+    })).resolves.toBe(0);
+  });
+
   it("enforces unique user supports and returns the support count", async () => {
     const report = makeSignalement("report-1");
     await repository.create(report);
 
     await expect(repository.addSupportIfAbsent(report.id, "user-2")).resolves.toBe(1);
+    await expect(repository.hasSupported(report.id, "user-2")).resolves.toBe(true);
+    await expect(repository.hasSupported(report.id, "user-3")).resolves.toBe(false);
     await expect(repository.addSupportIfAbsent(report.id, "user-2")).resolves.toBeNull();
     await expect(repository.addSupportIfAbsent(SignalementId.create("missing"), "user-3"))
       .rejects.toBeInstanceOf(SignalementNotFoundError);
@@ -205,6 +235,46 @@ describe("InMemorySignalementRepository", () => {
       assignedResponsableId: "responsable-1",
     });
     await expect(repository.addSupportIfAbsent(replacement.id, "user-2")).resolves.toBeNull();
+  });
+});
+
+describe("InMemoryNotificationRepository", () => {
+  it("scopes notifications to recipients and tracks unread state", async () => {
+    const repository = new InMemoryNotificationRepository();
+    await repository.create({
+      id: "notification-1",
+      recipientId: "user-1",
+      signalementId: "report-1",
+      signalementTitle: "Issue 1",
+      type: "REPORT_SUPPORTED",
+      createdAt,
+    });
+    await repository.create({
+      id: "notification-2",
+      recipientId: "user-1",
+      signalementId: "report-2",
+      signalementTitle: "Issue 2",
+      type: "REPORT_SUPPORTED",
+      createdAt: new Date(createdAt.getTime() + 1000),
+    });
+    await repository.create({
+      id: "notification-other",
+      recipientId: "user-2",
+      signalementId: "report-3",
+      signalementTitle: "Issue 3",
+      type: "REPORT_SUPPORTED",
+      createdAt,
+    });
+
+    await expect(repository.findForRecipient("user-1", 1)).resolves.toMatchObject([
+      { id: "notification-2", readAt: undefined },
+    ]);
+    await expect(repository.countUnreadForRecipient("user-1")).resolves.toBe(2);
+    await expect(repository.markAsRead("notification-1", "user-2", createdAt))
+      .resolves.toBeNull();
+    await expect(repository.markAsRead("notification-1", "user-1", createdAt))
+      .resolves.toBe("report-1");
+    await expect(repository.countUnreadForRecipient("user-1")).resolves.toBe(1);
   });
 });
 

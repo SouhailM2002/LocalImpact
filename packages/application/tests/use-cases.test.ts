@@ -12,7 +12,9 @@ import {
 import { beforeEach, describe, expect, it } from "vitest";
 import type {
   CategoryReportCount,
+  NewNotificationRecord,
   NewUserRecord,
+  NotificationDto,
   PhotoUpload,
   SignalementSearchQuery,
   UserRecord,
@@ -21,16 +23,19 @@ import {
   AddComment,
   AssignResponsable,
   AuthenticateUser,
+  ApplicationValidationError,
   ChangeSignalementStatus,
   ChangeUserRole,
   CreateSignalement,
   GetDashboardStats,
+  GetNotificationsForUser,
   GetResponsables,
   GetUsersForAdmin,
   GetSignalementById,
   GetSignalementDetail,
   GetSignalements,
   InvalidCredentialsError,
+  MarkNotificationAsRead,
   RegisterUser,
   SelfRoleChangeError,
   SupportSignalement,
@@ -47,6 +52,7 @@ import type {
 import type { FileStorage } from "../src/ports/file-storage.js";
 import type { HistoriqueRepository } from "../src/ports/historique-repository.js";
 import type { IdGenerator } from "../src/ports/id-generator.js";
+import type { NotificationRepository } from "../src/ports/notification-repository.js";
 import type { PasswordHasher } from "../src/ports/password-hasher.js";
 import type { SignalementRepository } from "../src/ports/signalement-repository.js";
 import type { TransactionManager } from "../src/ports/transaction-manager.js";
@@ -174,6 +180,10 @@ class FakeSignalementRepository implements SignalementRepository {
     return Promise.resolve(users.size);
   }
 
+  hasSupported(id: SignalementId, userId: string): Promise<boolean> {
+    return Promise.resolve(this.supports.get(id.value)?.has(userId) ?? false);
+  }
+
   countByStatus(): Promise<Readonly<Record<"NOUVEAU" | "PRIS_EN_CHARGE" | "EN_COURS" | "RESOLU", number>>> {
     const counts = { NOUVEAU: 0, PRIS_EN_CHARGE: 0, EN_COURS: 0, RESOLU: 0 };
     for (const signalement of this.items.values()) {
@@ -273,6 +283,60 @@ class FakeHistoriqueRepository implements HistoriqueRepository {
   }
 }
 
+class FakeNotificationRepository implements NotificationRepository {
+  readonly items: Array<NotificationDto & { readonly recipientId: string }> = [];
+
+  create(notification: NewNotificationRecord): Promise<void> {
+    this.items.push({ ...notification, recipientId: notification.recipientId, readAt: undefined });
+    return Promise.resolve();
+  }
+
+  findForRecipient(
+    recipientId: string,
+    limit?: number,
+  ): Promise<readonly NotificationDto[]> {
+    const items = this.items
+      .filter((item) => item.recipientId === recipientId)
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+      .slice(0, limit)
+      .map((notification) => ({
+        id: notification.id,
+        type: notification.type,
+        signalementId: notification.signalementId,
+        signalementTitle: notification.signalementTitle,
+        createdAt: notification.createdAt,
+        readAt: notification.readAt,
+      }));
+    return Promise.resolve(items);
+  }
+
+  countUnreadForRecipient(recipientId: string): Promise<number> {
+    return Promise.resolve(this.items.filter((item) => (
+      item.recipientId === recipientId && item.readAt === undefined
+    )).length);
+  }
+
+  markAsRead(
+    notificationId: string,
+    recipientId: string,
+    readAt: Date,
+  ): Promise<string | null> {
+    const index = this.items.findIndex((item) => (
+      item.id === notificationId && item.recipientId === recipientId
+    ));
+    const notification = this.items[index];
+    if (index < 0 || notification === undefined) {
+      return Promise.resolve(null);
+    }
+
+    this.items[index] = {
+      ...notification,
+      readAt: notification.readAt ?? readAt,
+    };
+    return Promise.resolve(notification.signalementId);
+  }
+}
+
 class FakeTransactionManager implements TransactionManager {
   async run<T>(operation: () => Promise<T>): Promise<T> {
     return operation();
@@ -311,6 +375,7 @@ describe("Application use cases", () => {
   let users: FakeUserRepository;
   let commentaires: FakeCommentaireRepository;
   let histories: FakeHistoriqueRepository;
+  let notifications: FakeNotificationRepository;
   let clock: FakeClock;
   let ids: FakeIdGenerator;
 
@@ -319,6 +384,7 @@ describe("Application use cases", () => {
     users = new FakeUserRepository();
     commentaires = new FakeCommentaireRepository();
     histories = new FakeHistoriqueRepository();
+    notifications = new FakeNotificationRepository();
     clock = new FakeClock();
     ids = new FakeIdGenerator();
   });
@@ -344,6 +410,8 @@ describe("Application use cases", () => {
       description: " The corridor light is broken. ",
       category: " Electrical ",
       location: " Building A ",
+      latitude: 36.8065,
+      longitude: 10.1815,
       photo,
     });
 
@@ -383,6 +451,8 @@ describe("Application use cases", () => {
       description: "The corridor light is broken.",
       category: "Electrical",
       location: "Building A",
+      latitude: 36.8065,
+      longitude: 10.1815,
       photo: {
         fileName: "light.jpg",
         contentType: "image/jpeg",
@@ -420,6 +490,8 @@ describe("Application use cases", () => {
       description: "Description",
       category: "Electrical",
       location: "Building A",
+      latitude: 36.8065,
+      longitude: 10.1815,
     })).rejects.toBeInstanceOf(UnauthorizedDomainOperationError);
   });
 
@@ -454,6 +526,40 @@ describe("Application use cases", () => {
       location: "Building A",
       status: "NOUVEAU",
     }]);
+  });
+
+  it("filters report lists by accessibility impact and urgency", async () => {
+    const accessible = Signalement.create({
+      id: SignalementId.create("accessible-report"),
+      title: "Blocked entrance",
+      description: "The accessible entrance is blocked.",
+      category: "Accessibilité",
+      location: "Building A",
+      latitude: 36.8065,
+      longitude: 10.1815,
+      accessibilityBarrierType: "BLOCKED_PATH",
+      accessibilityImpact: "MOBILITY",
+      accessibilityUrgency: "HIGH",
+      creatorId: "user-1",
+      createdAt: fixedDate,
+    });
+    signalements.items.set(accessible.id.value, accessible);
+    users.items.set("user-1", makeUser("user-1", "USER"));
+
+    const query: SignalementSearchQuery = {
+      accessibilityOnly: true,
+      accessibilityImpact: "MOBILITY",
+      accessibilityUrgency: "HIGH",
+      page: 1,
+      pageSize: 10,
+    };
+    const result = await new GetSignalements(signalements, users).execute({
+      actor: { userId: "user-1", role: "USER" },
+      query,
+    });
+
+    expect(result.reports.map(({ id }) => id)).toEqual(["accessible-report"]);
+    expect(signalements.queries[0]).toEqual(query);
   });
 
   it("scopes responsable report lists to their own assignments", async () => {
@@ -579,6 +685,7 @@ describe("Application use cases", () => {
       commentaires,
       histories,
       users,
+      signalements,
     ).execute({
       actor: { userId: "user-1", role: "USER" },
       signalementId: report.id.value,
@@ -588,6 +695,7 @@ describe("Application use cases", () => {
       creatorDisplayName: "user-1",
       assignedResponsableDisplayName: "responsable-1",
     });
+    expect(detail.viewerHasSupported).toBe(false);
     expect(detail.statusHistory.map(({ id, authorDisplayName }) => ({
       id,
       authorDisplayName,
@@ -608,7 +716,13 @@ describe("Application use cases", () => {
 
   it("records support exactly once per user", async () => {
     signalements.items.set("report-1", makeSignalement());
-    const support = new SupportSignalement(signalements);
+    const support = new SupportSignalement(
+      signalements,
+      notifications,
+      clock,
+      ids,
+      new FakeTransactionManager(),
+    );
     const input = {
       actor: { userId: "user-2", role: "USER" as const },
       signalementId: "report-1",
@@ -619,6 +733,75 @@ describe("Application use cases", () => {
       supportCount: 1,
     });
     await expect(support.execute(input)).rejects.toBeInstanceOf(DejaSoutenuError);
+    expect(notifications.items).toMatchObject([{
+      recipientId: "user-1",
+      signalementId: "report-1",
+      signalementTitle: "Broken light",
+      type: "REPORT_SUPPORTED",
+      createdAt: fixedDate,
+    }]);
+    await expect(signalements.hasSupported(SignalementId.create("report-1"), "user-2"))
+      .resolves.toBe(true);
+  });
+
+  it("does not allow a report creator to support their own report", async () => {
+    signalements.items.set("report-1", makeSignalement());
+    const support = new SupportSignalement(
+      signalements,
+      notifications,
+      clock,
+      ids,
+      new FakeTransactionManager(),
+    );
+
+    await expect(support.execute({
+      actor: { userId: "user-1", role: "USER" },
+      signalementId: "report-1",
+    })).rejects.toBeInstanceOf(ApplicationValidationError);
+
+    expect(notifications.items).toHaveLength(0);
+    await expect(signalements.hasSupported(
+      SignalementId.create("report-1"),
+      "user-1",
+    )).resolves.toBe(false);
+  });
+
+  it("lists only the recipient's notifications and marks owned notifications as read", async () => {
+    await notifications.create({
+      id: "notification-1",
+      type: "REPORT_SUPPORTED",
+      recipientId: "user-1",
+      signalementId: "report-1",
+      signalementTitle: "Broken light",
+      createdAt: fixedDate,
+    });
+    await notifications.create({
+      id: "notification-2",
+      type: "REPORT_SUPPORTED",
+      recipientId: "user-2",
+      signalementId: "report-2",
+      signalementTitle: "Broken door",
+      createdAt: fixedDate,
+    });
+    const getNotifications = new GetNotificationsForUser(notifications);
+    const markAsRead = new MarkNotificationAsRead(notifications, clock);
+
+    await expect(getNotifications.execute({ userId: "user-1" })).resolves.toMatchObject({
+      unreadCount: 1,
+      notifications: [{ id: "notification-1" }],
+    });
+    await expect(markAsRead.execute({
+      notificationId: "notification-1",
+      userId: "user-2",
+    })).rejects.toThrow("Cette notification est introuvable.");
+    await expect(markAsRead.execute({
+      notificationId: "notification-1",
+      userId: "user-1",
+    })).resolves.toBe("report-1");
+    await expect(getNotifications.execute({ userId: "user-1" })).resolves.toMatchObject({
+      unreadCount: 0,
+      notifications: [{ id: "notification-1", readAt: fixedDate }],
+    });
   });
 
   it("allows only an admin to assign a responsable account", async () => {

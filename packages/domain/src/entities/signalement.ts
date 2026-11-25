@@ -8,6 +8,16 @@ import type { CreateHistoriqueStatutInput } from "./historique-statut.js";
 import { Statut } from "../value-objects/statut.js";
 import { SignalementId } from "../value-objects/signalement-id.js";
 import { copyValidDate, optionalNonBlank, requireNonBlank } from "../validation.js";
+import {
+  ACCESSIBILITY_BARRIER_TYPES,
+  ACCESSIBILITY_IMPACTS,
+  ACCESSIBILITY_URGENCIES,
+} from "../accessibility.js";
+import type {
+  AccessibilityBarrierType,
+  AccessibilityImpact,
+  AccessibilityUrgency,
+} from "../accessibility.js";
 
 export interface CreateSignalementInput {
   readonly id: SignalementId;
@@ -15,6 +25,11 @@ export interface CreateSignalementInput {
   readonly description: string;
   readonly category: string;
   readonly location: string;
+  readonly latitude?: number;
+  readonly longitude?: number;
+  readonly accessibilityBarrierType?: AccessibilityBarrierType;
+  readonly accessibilityImpact?: AccessibilityImpact;
+  readonly accessibilityUrgency?: AccessibilityUrgency;
   readonly photoUrl?: string;
   readonly createdAt?: Date;
   readonly creatorId: string;
@@ -38,6 +53,62 @@ export interface ChangeSignalementStatusInput {
 
 export type SignalementActorRole = "USER" | "RESPONSABLE" | "ADMIN";
 
+type SignalementMetadata = Pick<
+  CreateSignalementInput,
+  | "latitude"
+  | "longitude"
+  | "accessibilityBarrierType"
+  | "accessibilityImpact"
+  | "accessibilityUrgency"
+>;
+
+function validateMetadata(metadata: SignalementMetadata): void {
+  const { latitude, longitude } = metadata;
+  if ((latitude === undefined) !== (longitude === undefined)) {
+    throw new InvalidSignalementError(
+      "coordinates",
+      "Latitude and longitude must be provided together.",
+    );
+  }
+  if (
+    (latitude !== undefined && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) ||
+    (longitude !== undefined && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180))
+  ) {
+    throw new InvalidSignalementError("coordinates", "Coordinates are outside valid ranges.");
+  }
+
+  const accessibilityFields = [
+    metadata.accessibilityBarrierType,
+    metadata.accessibilityImpact,
+    metadata.accessibilityUrgency,
+  ];
+  const providedAccessibilityFields = accessibilityFields.filter((value) => value !== undefined).length;
+  if (providedAccessibilityFields !== 0 && providedAccessibilityFields !== accessibilityFields.length) {
+    throw new InvalidSignalementError(
+      "accessibility",
+      "Accessibility barrier, impact, and urgency must be provided together.",
+    );
+  }
+  if (
+    metadata.accessibilityBarrierType !== undefined &&
+    !ACCESSIBILITY_BARRIER_TYPES.includes(metadata.accessibilityBarrierType)
+  ) {
+    throw new InvalidSignalementError("accessibilityBarrierType", "A valid accessibility barrier is required.");
+  }
+  if (
+    metadata.accessibilityImpact !== undefined &&
+    !ACCESSIBILITY_IMPACTS.includes(metadata.accessibilityImpact)
+  ) {
+    throw new InvalidSignalementError("accessibilityImpact", "A valid accessibility impact is required.");
+  }
+  if (
+    metadata.accessibilityUrgency !== undefined &&
+    !ACCESSIBILITY_URGENCIES.includes(metadata.accessibilityUrgency)
+  ) {
+    throw new InvalidSignalementError("accessibilityUrgency", "A valid accessibility urgency is required.");
+  }
+}
+
 export class Signalement {
   private currentStatus: Statut;
   private assignedResponsable: string | undefined;
@@ -58,17 +129,30 @@ export class Signalement {
     status: Statut = Statut.NOUVEAU,
     supportCount = 0,
     interventionDescription: string | undefined = undefined,
+    metadata: SignalementMetadata = {},
   ) {
     this.assignedResponsable = assignedResponsableId;
     this.currentStatus = status;
     this.persistedSupportCount = supportCount;
     this.currentInterventionDescription = interventionDescription;
+    this.latitude = metadata.latitude;
+    this.longitude = metadata.longitude;
+    this.accessibilityBarrierType = metadata.accessibilityBarrierType;
+    this.accessibilityImpact = metadata.accessibilityImpact;
+    this.accessibilityUrgency = metadata.accessibilityUrgency;
   }
+
+  readonly latitude: number | undefined;
+  readonly longitude: number | undefined;
+  readonly accessibilityBarrierType: AccessibilityBarrierType | undefined;
+  readonly accessibilityImpact: AccessibilityImpact | undefined;
+  readonly accessibilityUrgency: AccessibilityUrgency | undefined;
 
   static create(input: CreateSignalementInput): Signalement {
     if (!(input.id instanceof SignalementId)) {
       throw new InvalidSignalementError("id", "A valid report ID is required.");
     }
+    validateMetadata(input);
 
     return new Signalement(
       input.id,
@@ -80,6 +164,10 @@ export class Signalement {
       copyValidDate(input.createdAt ?? new Date(), "createdAt", "signalement"),
       requireNonBlank(input.creatorId, "creatorId", "signalement"),
       optionalNonBlank(input.assignedResponsableId, "assignedResponsableId", "signalement"),
+      Statut.NOUVEAU,
+      0,
+      undefined,
+      input,
     );
   }
 
@@ -93,6 +181,7 @@ export class Signalement {
     if (!Number.isSafeInteger(input.supportCount) || input.supportCount < 0) {
       throw new InvalidSignalementError("supportCount", "Support count must be a non-negative integer.");
     }
+    validateMetadata(input);
 
     return new Signalement(
       input.id,
@@ -107,6 +196,7 @@ export class Signalement {
       input.status,
       input.supportCount,
       optionalNonBlank(input.interventionDescription, "interventionDescription", "signalement"),
+      input,
     );
   }
 

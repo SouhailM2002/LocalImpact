@@ -7,7 +7,12 @@ import { toSignalementDto } from "../dto.js";
 import type { SignalementRepository } from "../ports/signalement-repository.js";
 import type { UserRepository } from "../ports/user-repository.js";
 import { ApplicationValidationError } from "../errors/application-error.js";
-import { Statut, UnauthorizedDomainOperationError } from "@localimpact/domain";
+import {
+  ACCESSIBILITY_IMPACTS,
+  ACCESSIBILITY_URGENCIES,
+  Statut,
+  UnauthorizedDomainOperationError,
+} from "@localimpact/domain";
 import { requireNonBlank } from "./application-validation.js";
 
 export interface GetSignalementsInput {
@@ -33,6 +38,15 @@ export class GetSignalements {
       ...(suppliedQuery.location === undefined
         ? {}
         : { location: requireNonBlank(suppliedQuery.location, "location") }),
+      ...(suppliedQuery.accessibilityOnly === undefined
+        ? {}
+        : { accessibilityOnly: suppliedQuery.accessibilityOnly }),
+      ...(suppliedQuery.accessibilityImpact === undefined
+        ? {}
+        : { accessibilityImpact: suppliedQuery.accessibilityImpact }),
+      ...(suppliedQuery.accessibilityUrgency === undefined
+        ? {}
+        : { accessibilityUrgency: suppliedQuery.accessibilityUrgency }),
       ...(suppliedQuery.status === undefined ? {} : { status: suppliedQuery.status }),
       ...(suppliedQuery.assignedResponsableId === undefined
         ? {}
@@ -64,6 +78,33 @@ export class GetSignalements {
     }
     if (query.status !== undefined) {
       Statut.from(query.status);
+    }
+    if (
+      query.accessibilityOnly !== undefined &&
+      typeof query.accessibilityOnly !== "boolean"
+    ) {
+      throw new ApplicationValidationError(
+        "accessibilityOnly",
+        "A valid accessibility filter is required.",
+      );
+    }
+    if (
+      query.accessibilityImpact !== undefined &&
+      !ACCESSIBILITY_IMPACTS.includes(query.accessibilityImpact)
+    ) {
+      throw new ApplicationValidationError(
+        "accessibilityImpact",
+        "A valid accessibility impact is required.",
+      );
+    }
+    if (
+      query.accessibilityUrgency !== undefined &&
+      !ACCESSIBILITY_URGENCIES.includes(query.accessibilityUrgency)
+    ) {
+      throw new ApplicationValidationError(
+        "accessibilityUrgency",
+        "A valid accessibility urgency is required.",
+      );
     }
 
     const effectiveQuery = input.actor.role === "RESPONSABLE"

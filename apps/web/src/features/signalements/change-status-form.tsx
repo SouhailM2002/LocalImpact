@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import type { StatutValue } from "@localimpact/domain";
 import { Button, Textarea } from "@localimpact/ui";
 
-import { changeAssignedReportStatusAction } from "@/app/responsable/actions";
+import { changeSignalementStatusAction } from "@/app/reports/actions";
 import type { ChangeStatusFormState } from "./change-status-form-state";
 
 const initialState: ChangeStatusFormState = {
@@ -33,7 +33,7 @@ export function ChangeStatusForm({
   readonly currentStatus: StatutValue;
 }) {
   const [state, formAction, pending] = useActionState(
-    changeAssignedReportStatusAction,
+    changeSignalementStatusAction,
     initialState,
   );
   const nextStatus = nextStatuses[currentStatus];

@@ -2,6 +2,10 @@ import Link from "next/link";
 import type { SignalementListItemDto } from "@localimpact/application";
 import { Badge, Card } from "@localimpact/ui";
 
+import {
+  getAccessibilityUrgencyLabel,
+} from "./accessibility-labels";
+
 const statusLabels = {
   NOUVEAU: "Nouveau",
   PRIS_EN_CHARGE: "Pris en charge",
@@ -38,6 +42,11 @@ export function ReportCard({
           <Badge variant={statusVariants[report.status]}>
             {statusLabels[report.status]}
           </Badge>
+          {report.accessibilityUrgency && (
+            <Badge variant={report.accessibilityUrgency === "HIGH" ? "warning" : "neutral"}>
+              Accessibilité · {getAccessibilityUrgencyLabel(report.accessibilityUrgency)}
+            </Badge>
+          )}
         </div>
         <span className="shrink-0 text-xs text-slate-500">{createdAt}</span>
       </div>
