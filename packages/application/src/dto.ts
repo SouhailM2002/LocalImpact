@@ -109,6 +109,13 @@ export interface UserDto {
   readonly createdAt: Date;
 }
 
+export interface AdminUserSummaryDto {
+  readonly id: string;
+  readonly displayName: string;
+  readonly email: string;
+  readonly role: UserRole;
+}
+
 export interface UserDisplayName {
   readonly id: string;
   readonly displayName: string;

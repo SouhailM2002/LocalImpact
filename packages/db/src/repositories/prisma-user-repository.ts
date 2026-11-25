@@ -1,5 +1,7 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
+  AdminUserSummaryDto,
+  ChangeUserRoleResult,
   NewUserRecord,
   UserDisplayName,
   UserRecord,
@@ -82,6 +84,54 @@ export class PrismaUserRepository implements UserRepository {
     });
 
     return users.map(({ id, name }) => ({ id, displayName: name }));
+  }
+
+  async findAllForAdmin(): Promise<readonly AdminUserSummaryDto[]> {
+    const users = await getPrismaExecutor(this.prisma).user.findMany({
+      select: { id: true, name: true, email: true, role: true },
+      orderBy: [{ name: "asc" }, { id: "asc" }],
+    });
+
+    return users.map(({ id, name, email, role }) => ({
+      id,
+      displayName: name,
+      email,
+      role,
+    }));
+  }
+
+  async changeRole(userId: string, role: UserRole): Promise<ChangeUserRoleResult> {
+    return this.prisma.$transaction(async (transaction) => {
+      await transaction.$queryRaw`
+        SELECT "id"
+        FROM "User"
+        WHERE "role" = 'ADMIN'
+        ORDER BY "id"
+        FOR UPDATE
+      `;
+
+      const current = await transaction.user.findUnique({ where: { id: userId } });
+      if (current === null) {
+        return { kind: "not_found" };
+      }
+      if (current.role === role) {
+        return { kind: "updated", user: toUserRecord(current) };
+      }
+      if (current.role === "ADMIN" && role !== "ADMIN") {
+        const administratorCount = await transaction.user.count({
+          where: { role: "ADMIN" },
+        });
+        if (administratorCount <= 1) {
+          return { kind: "last_admin" };
+        }
+      }
+
+      const updated = await transaction.user.update({
+        where: { id: userId },
+        data: { role },
+      });
+      return { kind: "updated", user: toUserRecord(updated) };
+    });
   }
 
   async create(user: NewUserRecord): Promise<UserRecord> {

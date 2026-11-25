@@ -22,14 +22,17 @@ import {
   AssignResponsable,
   AuthenticateUser,
   ChangeSignalementStatus,
+  ChangeUserRole,
   CreateSignalement,
   GetDashboardStats,
   GetResponsables,
+  GetUsersForAdmin,
   GetSignalementById,
   GetSignalementDetail,
   GetSignalements,
   InvalidCredentialsError,
   RegisterUser,
+  SelfRoleChangeError,
   SupportSignalement,
   UserAlreadyExistsError,
   UserNotFoundError,
@@ -210,6 +213,32 @@ class FakeUserRepository implements UserRepository {
     return Promise.resolve([...this.items.values()]
       .filter((user) => user.role === role)
       .map(({ id, displayName }) => ({ id, displayName })));
+  }
+
+  findAllForAdmin() {
+    return Promise.resolve([...this.items.values()]
+      .map(({ id, displayName, email, role }) => ({ id, displayName, email, role })));
+  }
+
+  changeRole(userId: string, role: UserRecord["role"]) {
+    const user = this.items.get(userId);
+    if (user === undefined) {
+      return Promise.resolve({ kind: "not_found" as const });
+    }
+    if (user.role === role) {
+      return Promise.resolve({ kind: "updated" as const, user });
+    }
+    if (
+      user.role === "ADMIN" &&
+      role !== "ADMIN" &&
+      [...this.items.values()].filter((item) => item.role === "ADMIN").length <= 1
+    ) {
+      return Promise.resolve({ kind: "last_admin" as const });
+    }
+
+    const updated = { ...user, role };
+    this.items.set(userId, updated);
+    return Promise.resolve({ kind: "updated" as const, user: updated });
   }
 
   create(user: NewUserRecord): Promise<UserRecord> {
@@ -730,6 +759,53 @@ describe("Application use cases", () => {
       .resolves.toEqual([
         { id: "responsable-1", displayName: "responsable-1" },
       ]);
+  });
+
+  it("allows administrators to list users without exposing password data", async () => {
+    users.items.set("user-1", makeUser("user-1", "USER"));
+    const getUsers = new GetUsersForAdmin(users);
+
+    await expect(getUsers.execute({ userId: "user-1", role: "USER" }))
+      .rejects.toBeInstanceOf(UnauthorizedDomainOperationError);
+    await expect(getUsers.execute({ userId: "admin-1", role: "ADMIN" }))
+      .resolves.toEqual([{
+        id: "user-1",
+        displayName: "user-1",
+        email: "user-1@example.test",
+        role: "USER",
+      }]);
+  });
+
+  it("allows admins to change other users' roles but forbids self changes", async () => {
+    users.items.set("admin-1", makeUser("admin-1", "ADMIN"));
+    users.items.set("admin-2", makeUser("admin-2", "ADMIN"));
+    users.items.set("user-1", makeUser("user-1", "USER"));
+    const changeRole = new ChangeUserRole(users);
+
+    await expect(changeRole.execute({
+      actor: { userId: "user-1", role: "USER" },
+      targetUserId: "user-1",
+      newRole: "RESPONSABLE",
+    })).rejects.toBeInstanceOf(UnauthorizedDomainOperationError);
+
+    await expect(changeRole.execute({
+      actor: { userId: "admin-1", role: "ADMIN" },
+      targetUserId: "user-1",
+      newRole: "RESPONSABLE",
+    })).resolves.toMatchObject({ id: "user-1", role: "RESPONSABLE" });
+
+    await expect(changeRole.execute({
+      actor: { userId: "admin-1", role: "ADMIN" },
+      targetUserId: "admin-1",
+      newRole: "USER",
+    })).rejects.toBeInstanceOf(SelfRoleChangeError);
+    await expect(users.findById("admin-1")).resolves.toMatchObject({ role: "ADMIN" });
+
+    await expect(changeRole.execute({
+      actor: { userId: "admin-2", role: "ADMIN" },
+      targetUserId: "admin-2",
+      newRole: "RESPONSABLE",
+    })).rejects.toBeInstanceOf(SelfRoleChangeError);
   });
 
   it("registers standard users with a hashed password and prevents role escalation", async () => {

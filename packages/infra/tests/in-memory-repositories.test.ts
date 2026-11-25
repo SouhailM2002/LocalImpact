@@ -268,6 +268,44 @@ describe("InMemoryUserRepository", () => {
         { id: "responsable-2", displayName: "Zoé" },
       ]);
   });
+
+  it("lists safe user summaries and prevents demoting the final administrator", async () => {
+    const repository = new InMemoryUserRepository();
+    await repository.create(makeUser({
+      id: "admin-1",
+      displayName: "Admin One",
+      email: "admin-1@example.test",
+      role: "ADMIN",
+    }));
+    await repository.create(makeUser({
+      id: "admin-2",
+      displayName: "Admin Two",
+      email: "admin-2@example.test",
+      role: "ADMIN",
+    }));
+
+    await expect(repository.findAllForAdmin()).resolves.toEqual([
+      {
+        id: "admin-1",
+        displayName: "Admin One",
+        email: "admin-1@example.test",
+        role: "ADMIN",
+      },
+      {
+        id: "admin-2",
+        displayName: "Admin Two",
+        email: "admin-2@example.test",
+        role: "ADMIN",
+      },
+    ]);
+
+    await expect(repository.changeRole("admin-1", "USER"))
+      .resolves.toMatchObject({ kind: "updated", user: { role: "USER" } });
+    await expect(repository.changeRole("admin-2", "RESPONSABLE"))
+      .resolves.toEqual({ kind: "last_admin" });
+    await expect(repository.changeRole("missing", "ADMIN"))
+      .resolves.toEqual({ kind: "not_found" });
+  });
 });
 
 describe("InMemoryCommentaireRepository", () => {

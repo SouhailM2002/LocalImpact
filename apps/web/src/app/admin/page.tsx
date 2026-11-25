@@ -8,6 +8,7 @@ import type {
 import { Badge, Card } from "@localimpact/ui";
 
 import { AssignResponsableForm } from "@/features/admin/assign-responsable-form";
+import { UserRoleManagement } from "@/features/admin/user-role-management";
 import { container } from "@/container";
 import { getAuthenticatedUser } from "@/lib/auth-session";
 
@@ -246,10 +247,11 @@ export default async function AdminPage({
   }
 
   const actor = { userId: user.id, role: user.role } as const;
-  const [stats, reports, responsables] = await Promise.all([
+  const [stats, reports, responsables, managedUsers] = await Promise.all([
     container.getDashboardStats.execute(actor),
     container.getSignalements.execute({ actor, query: { page, pageSize } }),
     container.getResponsables.execute(actor),
+    container.getUsersForAdmin.execute(actor),
   ]);
 
   if (reports.page !== page) {
@@ -287,6 +289,7 @@ export default async function AdminPage({
         />
         <CategoryBreakdown stats={stats} />
       </div>
+      <UserRoleManagement currentAdminId={user.id} users={managedUsers} />
     </div>
   );
 }

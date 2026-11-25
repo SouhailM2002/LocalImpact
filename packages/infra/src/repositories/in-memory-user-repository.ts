@@ -1,4 +1,6 @@
 import type {
+  AdminUserSummaryDto,
+  ChangeUserRoleResult,
   NewUserRecord,
   UserDisplayName,
   UserRepository,
@@ -58,6 +60,38 @@ export class InMemoryUserRepository implements UserRepository {
       ));
 
     return Promise.resolve(Object.freeze(result));
+  }
+
+  findAllForAdmin(): Promise<readonly AdminUserSummaryDto[]> {
+    const result = [...this.usersById.values()]
+      .map(({ id, displayName, email, role }) => ({ id, displayName, email, role }))
+      .sort((left, right) => (
+        left.displayName.localeCompare(right.displayName) ||
+        left.id.localeCompare(right.id)
+      ));
+
+    return Promise.resolve(Object.freeze(result));
+  }
+
+  changeRole(userId: string, role: UserRole): Promise<ChangeUserRoleResult> {
+    const current = this.usersById.get(userId);
+    if (current === undefined) {
+      return Promise.resolve({ kind: "not_found" });
+    }
+    if (current.role === role) {
+      return Promise.resolve({ kind: "updated", user: copyUser(current) });
+    }
+    if (
+      current.role === "ADMIN" &&
+      role !== "ADMIN" &&
+      [...this.usersById.values()].filter((user) => user.role === "ADMIN").length <= 1
+    ) {
+      return Promise.resolve({ kind: "last_admin" });
+    }
+
+    const updated = copyUser({ ...current, role });
+    this.usersById.set(userId, updated);
+    return Promise.resolve({ kind: "updated", user: copyUser(updated) });
   }
 
   create(user: NewUserRecord): Promise<UserRecord> {

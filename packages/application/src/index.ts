@@ -1,5 +1,6 @@
 export type {
   ActorContext,
+  AdminUserSummaryDto,
   CategoryReportCount,
   CommentaireDto,
   CommentaireDetailDto,
@@ -28,7 +29,9 @@ export {
   ApplicationError,
   ApplicationValidationError,
   InvalidCredentialsError,
+  LastAdministratorRoleChangeError,
   PotentialDuplicateSignalementsError,
+  SelfRoleChangeError,
   UserAlreadyExistsError,
   UserNotFoundError,
 } from "./errors/application-error.js";
@@ -47,6 +50,7 @@ export type { PasswordHasher } from "./ports/password-hasher.js";
 export type { SignalementRepository } from "./ports/signalement-repository.js";
 export type { TransactionManager } from "./ports/transaction-manager.js";
 export type { UserRepository } from "./ports/user-repository.js";
+export type { ChangeUserRoleResult } from "./ports/user-repository.js";
 export { AddComment } from "./use-cases/add-comment.js";
 export type { AddCommentInput } from "./use-cases/add-comment.js";
 export { AssignResponsable } from "./use-cases/assign-responsable.js";
@@ -61,6 +65,9 @@ export type {
 export { CreateSignalement } from "./use-cases/create-signalement.js";
 export type { CreateSignalementInput } from "./use-cases/create-signalement.js";
 export { GetDashboardStats } from "./use-cases/get-dashboard-stats.js";
+export { ChangeUserRole } from "./use-cases/change-user-role.js";
+export type { ChangeUserRoleInput } from "./use-cases/change-user-role.js";
+export { GetUsersForAdmin } from "./use-cases/get-users-for-admin.js";
 export { GetResponsables } from "./use-cases/get-responsables.js";
 export { GetSignalementById } from "./use-cases/get-signalement-by-id.js";
 export type { GetSignalementByIdInput } from "./use-cases/get-signalement-by-id.js";

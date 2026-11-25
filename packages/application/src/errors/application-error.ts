@@ -5,6 +5,8 @@ export type ApplicationErrorCode =
   | "POTENTIAL_DUPLICATES"
   | "USER_ALREADY_EXISTS"
   | "USER_NOT_FOUND"
+  | "LAST_ADMINISTRATOR"
+  | "SELF_ROLE_CHANGE"
   | "INVALID_CREDENTIALS";
 
 export abstract class ApplicationError extends Error {
@@ -44,6 +46,21 @@ export class UserAlreadyExistsError extends ApplicationError {
 export class UserNotFoundError extends ApplicationError {
   constructor(readonly userId: string) {
     super("USER_NOT_FOUND", `User ${userId} was not found.`);
+  }
+}
+
+export class LastAdministratorRoleChangeError extends ApplicationError {
+  constructor() {
+    super(
+      "LAST_ADMINISTRATOR",
+      "Le dernier compte administrateur ne peut pas être rétrogradé.",
+    );
+  }
+}
+
+export class SelfRoleChangeError extends ApplicationError {
+  constructor() {
+    super("SELF_ROLE_CHANGE", "Vous ne pouvez pas modifier votre propre rôle.");
   }
 }
 

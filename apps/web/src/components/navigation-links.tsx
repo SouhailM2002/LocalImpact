@@ -22,7 +22,9 @@ const roleNavigation: Readonly<Record<UserRole, readonly NavigationItem[]>> = {
   USER: [
     { href: "/reports/new", label: "Créer un signalement", icon: "plus" },
   ],
-  RESPONSABLE: [],
+  RESPONSABLE: [
+    { href: "/responsable", label: "Mes interventions", icon: "activity" },
+  ],
   ADMIN: [
     { href: "/admin", label: "Administration", icon: "dashboard" },
   ],
