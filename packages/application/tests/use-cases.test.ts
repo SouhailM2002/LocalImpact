@@ -35,6 +35,11 @@ import {
 } from "../src/index.js";
 import type { Clock } from "../src/ports/clock.js";
 import type { CommentaireRepository } from "../src/ports/commentaire-repository.js";
+import type {
+  DuplicateSignalementDetector,
+  DuplicateSignalementQuery,
+  DuplicateSignalementSuggestion,
+} from "../src/ports/duplicate-signalement-detector.js";
 import type { FileStorage } from "../src/ports/file-storage.js";
 import type { HistoriqueRepository } from "../src/ports/historique-repository.js";
 import type { IdGenerator } from "../src/ports/id-generator.js";
@@ -66,6 +71,18 @@ class FakeFileStorage implements FileStorage {
   store(file: PhotoUpload): Promise<string> {
     this.stored.push(file);
     return Promise.resolve(`https://files.local/${file.fileName}`);
+  }
+}
+
+class FakeDuplicateSignalementDetector implements DuplicateSignalementDetector {
+  constructor(
+    private readonly suggestions: readonly DuplicateSignalementSuggestion[] = [],
+  ) {}
+
+  findSimilar(
+    _query: DuplicateSignalementQuery,
+  ): Promise<readonly DuplicateSignalementSuggestion[]> {
+    return Promise.resolve(this.suggestions);
   }
 }
 
@@ -272,7 +289,13 @@ describe("Application use cases", () => {
 
   it("creates a valid report and stores an optional photo", async () => {
     const storage = new FakeFileStorage();
-    const create = new CreateSignalement(signalements, storage, clock, ids);
+    const create = new CreateSignalement(
+      signalements,
+      storage,
+      clock,
+      ids,
+      new FakeDuplicateSignalementDetector(),
+    );
     const photo: PhotoUpload = {
       fileName: "light.jpg",
       contentType: "image/jpeg",
@@ -301,8 +324,59 @@ describe("Application use cases", () => {
     expect(signalements.items.size).toBe(1);
   });
 
+  it("requires confirmation for similar reports before storing photos or creating a report", async () => {
+    const storage = new FakeFileStorage();
+    const suggestion: DuplicateSignalementSuggestion = {
+      id: "existing-report",
+      title: "Broken corridor light",
+      category: "Electrical",
+      location: "Building A",
+      status: "NOUVEAU",
+      supportCount: 2,
+    };
+    const create = new CreateSignalement(
+      signalements,
+      storage,
+      clock,
+      ids,
+      new FakeDuplicateSignalementDetector([suggestion]),
+    );
+    const input = {
+      actor: { userId: "user-1", role: "USER" as const },
+      title: "Broken light",
+      description: "The corridor light is broken.",
+      category: "Electrical",
+      location: "Building A",
+      photo: {
+        fileName: "light.jpg",
+        contentType: "image/jpeg",
+        content: new Uint8Array([1, 2, 3]),
+      },
+    };
+
+    await expect(create.execute(input)).rejects.toMatchObject({
+      code: "POTENTIAL_DUPLICATES",
+      suggestions: [suggestion],
+    });
+    expect(storage.stored).toHaveLength(0);
+    expect(signalements.items.size).toBe(0);
+
+    await expect(create.execute({
+      ...input,
+      confirmPotentialDuplicates: true,
+    })).resolves.toMatchObject({ title: "Broken light" });
+    expect(storage.stored).toHaveLength(1);
+    expect(signalements.items.size).toBe(1);
+  });
+
   it("rejects privileged roles from creating user reports", async () => {
-    const create = new CreateSignalement(signalements, new FakeFileStorage(), clock, ids);
+    const create = new CreateSignalement(
+      signalements,
+      new FakeFileStorage(),
+      clock,
+      ids,
+      new FakeDuplicateSignalementDetector(),
+    );
 
     await expect(create.execute({
       actor: { userId: "admin-1", role: "ADMIN" },

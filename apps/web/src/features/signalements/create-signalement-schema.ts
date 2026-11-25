@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { DuplicateSignalementSuggestion } from "@localimpact/application";
 
 export const MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
 export const SUPPORTED_PHOTO_TYPES = [
@@ -21,6 +22,7 @@ export type CreateSignalementField = typeof createSignalementFields[number];
 export interface CreateSignalementFormState {
   readonly message: string;
   readonly fieldErrors: Partial<Record<CreateSignalementField, string>>;
+  readonly duplicateSuggestions: readonly DuplicateSignalementSuggestion[];
 }
 
 function isCreateSignalementField(value: unknown): value is CreateSignalementField {

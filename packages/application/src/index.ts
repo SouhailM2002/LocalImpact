@@ -28,6 +28,7 @@ export {
   ApplicationError,
   ApplicationValidationError,
   InvalidCredentialsError,
+  PotentialDuplicateSignalementsError,
   UserAlreadyExistsError,
   UserNotFoundError,
 } from "./errors/application-error.js";
@@ -37,6 +38,7 @@ export type { CommentaireRepository } from "./ports/commentaire-repository.js";
 export type {
   DuplicateSignalementDetector,
   DuplicateSignalementQuery,
+  DuplicateSignalementSuggestion,
 } from "./ports/duplicate-signalement-detector.js";
 export type { FileStorage } from "./ports/file-storage.js";
 export type { HistoriqueRepository } from "./ports/historique-repository.js";

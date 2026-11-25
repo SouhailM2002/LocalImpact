@@ -3,7 +3,10 @@ import type {
   CreateSignalementInput,
   SignalementDto,
 } from "@localimpact/application";
-import { ApplicationError } from "@localimpact/application";
+import {
+  ApplicationError,
+  PotentialDuplicateSignalementsError,
+} from "@localimpact/application";
 import { DomainError } from "@localimpact/domain";
 
 import {
@@ -25,8 +28,9 @@ export type CreateSignalementSubmission =
 function failed(
   message: string,
   fieldErrors: Partial<Record<CreateSignalementField, string>> = {},
+  duplicateSuggestions: CreateSignalementFormState["duplicateSuggestions"] = [],
 ): CreateSignalementSubmission {
-  return { ok: false, state: { message, fieldErrors } };
+  return { ok: false, state: { message, fieldErrors, duplicateSuggestions } };
 }
 
 function optionalPhoto(value: FormDataEntryValue | null): unknown {
@@ -120,6 +124,9 @@ export async function submitCreateSignalementForm(
   const input: CreateSignalementInput = {
     actor,
     ...fields,
+    ...(formData.get("confirmPotentialDuplicates") === "true"
+      ? { confirmPotentialDuplicates: true }
+      : {}),
     ...(photoUpload === undefined ? {} : { photo: photoUpload }),
   };
 
@@ -127,6 +134,9 @@ export async function submitCreateSignalementForm(
     const signalement = await execute(input);
     return { ok: true, signalementId: signalement.id };
   } catch (error) {
+    if (error instanceof PotentialDuplicateSignalementsError) {
+      return failed(error.message, {}, error.suggestions);
+    }
     if (error instanceof ApplicationError || error instanceof DomainError) {
       return failed(error.message);
     }

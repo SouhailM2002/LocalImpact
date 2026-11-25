@@ -1,9 +1,11 @@
 import { Signalement, SignalementId } from "@localimpact/domain";
 import { UnauthorizedDomainOperationError } from "@localimpact/domain";
 import { ApplicationValidationError } from "../errors/application-error.js";
+import { PotentialDuplicateSignalementsError } from "../errors/application-error.js";
 import type { ActorContext, PhotoUpload, SignalementDto } from "../dto.js";
 import { toSignalementDto } from "../dto.js";
 import type { Clock } from "../ports/clock.js";
+import type { DuplicateSignalementDetector } from "../ports/duplicate-signalement-detector.js";
 import type { FileStorage } from "../ports/file-storage.js";
 import type { IdGenerator } from "../ports/id-generator.js";
 import type { SignalementRepository } from "../ports/signalement-repository.js";
@@ -16,6 +18,7 @@ export interface CreateSignalementInput {
   readonly category: string;
   readonly location: string;
   readonly photo?: PhotoUpload;
+  readonly confirmPotentialDuplicates?: boolean;
 }
 
 export class CreateSignalement {
@@ -24,6 +27,7 @@ export class CreateSignalement {
     private readonly fileStorage: FileStorage,
     private readonly clock: Clock,
     private readonly ids: IdGenerator,
+    private readonly duplicateDetector: DuplicateSignalementDetector,
   ) {}
 
   async execute(input: CreateSignalementInput): Promise<SignalementDto> {
@@ -46,6 +50,16 @@ export class CreateSignalement {
         );
       }
     }
+    const suggestions = await this.duplicateDetector.findSimilar({
+      title,
+      description,
+      category,
+      location,
+    });
+    if (suggestions.length > 0 && input.confirmPotentialDuplicates !== true) {
+      throw new PotentialDuplicateSignalementsError(suggestions);
+    }
+
     const photoUrl = input.photo === undefined
       ? undefined
       : await this.fileStorage.store(input.photo);

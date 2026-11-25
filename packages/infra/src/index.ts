@@ -5,4 +5,5 @@ export { InMemoryHistoriqueRepository } from "./repositories/in-memory-historiqu
 export { InMemorySignalementRepository } from "./repositories/in-memory-signalement-repository.js";
 export { InMemoryUserRepository } from "./repositories/in-memory-user-repository.js";
 export { LocalFileStorage } from "./services/local-file-storage.js";
+export { SignalementDuplicateDetector } from "./services/signalement-duplicate-detector.js";
 export { ScryptPasswordHasher } from "./services/scrypt-password-hasher.js";

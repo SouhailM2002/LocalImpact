@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, type FormEvent } from "react";
 import { Button, Input, Textarea } from "@localimpact/ui";
 
@@ -17,6 +18,7 @@ import {
 const initialState: CreateSignalementFormState = {
   message: "",
   fieldErrors: {},
+  duplicateSuggestions: [],
 };
 
 function FieldError({ id, message }: { readonly id: string; readonly message?: string }) {
@@ -81,6 +83,37 @@ export function CreateSignalementForm() {
         >
           {serverState.message}
         </div>
+      )}
+
+      {serverState.duplicateSuggestions.length > 0 && (
+        <section
+          aria-labelledby="duplicate-suggestions-title"
+          className="border-2 border-amber-700 bg-amber-50 p-4 text-amber-950 sm:p-5"
+          role="alert"
+        >
+          <h2 className="font-black" id="duplicate-suggestions-title">
+            Des signalements similaires existent déjà
+          </h2>
+          <p className="mt-1 text-sm leading-6">
+            Consultez-les avant de continuer. Si votre problème est différent,
+            vous pouvez confirmer la création ci-dessous.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {serverState.duplicateSuggestions.map((suggestion) => (
+              <li key={suggestion.id}>
+                <Link
+                  className="font-bold underline underline-offset-4 hover:text-amber-800"
+                  href={`/reports/${encodeURIComponent(suggestion.id)}`}
+                >
+                  {suggestion.title}
+                </Link>
+                <span className="ml-2 text-sm text-amber-900">
+                  {suggestion.category} · {suggestion.location}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div>
@@ -181,6 +214,18 @@ export function CreateSignalementForm() {
         <Button className="w-full sm:w-auto" disabled={pending} type="submit">
           {pending ? "Envoi en cours..." : "Créer le signalement"}
         </Button>
+        {serverState.duplicateSuggestions.length > 0 && (
+          <Button
+            className="w-full sm:w-auto"
+            disabled={pending}
+            name="confirmPotentialDuplicates"
+            type="submit"
+            value="true"
+            variant="secondary"
+          >
+            Créer quand même
+          </Button>
+        )}
       </div>
       {pending && (
         <p aria-live="polite" className="sr-only" role="status">
